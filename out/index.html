@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<head>
+	<title>ASCII generator mkI</title>
+	<meta http-equiv="X-UA-Compatible" content="IE=9">
+</head>
+<body>
+	<div id="container">
+	<nav id="steps">
+		<a href="#weights">Calibrate weights</a>
+		<a href="#geometry">Calibrate geometry</a>
+		<a href="#image">Convert image</a>
+	</nav>
+	<section id="weights">
+		<div class="instructions">
+
+		</div>
+		<div class="upload">
+		</div>
+		<form>
+			Font family: <input type="text" id="font_family" value="Monospace"></input>
+			Font size: <input type="text" id="font_size" value="24px"></input>
+		</form>
+	</section>
+	<section id="geometry">
+		<div class="instructions">
+
+		</div>
+		<div class="upload">
+		</div>
+		<form>
+			Columns: <input type="text" id="columns"></input>
+			Row max: <input type="text" id="row_max"></input>
+		</form>
+	</section>
+	<section id="image">
+		<div class="instructions">
+
+		</div>
+		<div class="upload">
+		</div>
+	</section>
+</div>
+<canvas id="character_set" width="2000" height="7000"></canvas>
+	<script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
+	<script src="/vendor/underscore-min.js"></script>
+	<script >(function(){
+	/* Did we just livereload? */
+var log = !!(localStorage && console && console.log && true);
+if ( log && localStorage.getItem('/docpad-livereload/reloaded') === 'yes' ) {
+	localStorage.removeItem('/docpad-livereload/reloaded');
+	console.log('LiveReload completed at', new Date())
+}
+
+/* Listen for the regenerated event and perform a reload of the page when the event occurs */
+var listen = function(){
+	var primus = new Primus('/docpad-livereload');
+	primus.on('data', function(data){
+		if ( data && data.message ) {
+			if ( data.message === 'generateBefore' ) {
+				if ( log ) {
+					console.log('LiveReload started at', new Date());
+				}
+				if ( typeof document.getElementsByTagName !== 'undefined' ) {
+	document.getElementsByTagName('html')[0].className += ' wait';
+}
+			}
+			else if ( data.message === 'generateAfter' ) {
+				if ( log ) {
+					localStorage.setItem('/docpad-livereload/reloaded', 'yes');
+				}
+				document.location.reload();
+			}
+		}
+	});
+};
+	/* Inject socket into our page */
+var inject = function(){
+	var t = document.createElement('script');
+	t.type = 'text/javascript';
+	t.async = 'async';
+	t.src = '/primus/primus.js';
+	t.onload = listen;
+	var s = document.getElementsByTagName('script')[0];
+	s.parentNode.insertBefore(t, s);
+};
+	if ( typeof Primus !== 'undefined' ) {
+		listen();
+	} else {
+		inject();
+	}
+})();</script><script defer="defer"  src="/scripts.js"></script>
+</body>
+</html>
