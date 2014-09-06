@@ -53,7 +53,7 @@ drawCharacterSet = ->
 			line += Array(5).join window.weights[i+j].character
 			line += ' '
 		for k in [1..3]
-			chars.fillText line, lines[0].length*char.width + 10, char.height * 0.25 * n
+			chars.fillText line, lines[0].length*char.width + 10, char.height * 0.3 * n
 			n++
 		n++
 		line = ''
