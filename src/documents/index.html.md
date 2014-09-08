@@ -27,7 +27,7 @@ layout: "normal"
 			<form>
 				From url: <input type="text" id="charset_url" value=""></input>
 			</form>
-			Drag and drop image of character set
+			Drag and drop image file of character set
 		</div>
 		<canvas id="character_set" width="500" height="500"></canvas>
 	</section>
@@ -41,14 +41,23 @@ layout: "normal"
 		<form>
 			From url: <input type="text" id="image_url" value=""></input>
 		</form>
-		<p>Drag and drop image to be converted</p>
+		<p>Drag and drop image file to be converted</p>
 		<canvas id="adjust_image" width="500" height="500"></canvas>
 	</section>
 	<section id="result">
 		<h2>Preview Result</h2>
 		<form>
-			<input type="checkbox" id="plain_text" checked></input> Output plain text <br />
+			B&amp;W conversion style: 
+			<select id="bw">
+			  <option value="cie">CIE Luma</option>
+			  <option value="ccir">CCIR 601</option>
+			</select>
+			<input type="checkbox" id="plain_text" checked></input> Output plain text
+			<br />
 			Row length: <input type="text" id="row_length" value="78"></input> characters
+			<input type="range" id="customR" min="0" max="3" value="1" step="0.01">Red
+			<input type="range" id="customG" min="0" max="3" value="1" step="0.01">Green
+			<input type="range" id="customB" min="0" max="3" value="1" step="0.01">Blue
 		</form>
 		<pre id="output_ascii"></pre>
 		<canvas id="preview_result" width="500" height="500"></canvas>

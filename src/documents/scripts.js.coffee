@@ -91,17 +91,16 @@ escapeHtml = (string) ->
 	return String(string).replace(/[&<>"'\/]/g, (s) -> return entityMap[s])
 
 imgToText = ->
-	rowLength = $('#row_length').val()
 	source = document.getElementById("adjust_image")
 	cvs = source.getContext('2d')
 	fontFamily = $('#font_family').val()
-	$('#output_ascii').css('font-family',fontFamily)
+	$('#output_ascii').css('font-family',fontFamily).css('line-height','64%')
 	text = ''
 	for i in [0...source.height]
 		row = ''
 		window.imgData = cvs.getImageData(0,i,source.width,1)
 		for p in [0...imgData.data.length] by 4
-			b = imgData.data[p]
+			b = greyscale(imgData.data,p)
 			# find corresponding ascii character
 			closest = null
 			for c in window.weights
@@ -112,17 +111,36 @@ imgToText = ->
 		text += escapeHtml(row) + '<br />'
 	$('#output_ascii').html(text)
 
+greyscale = (imgData,p) ->
+	greyscaleMethod = $('#bw').val()
+	customR = $('#customR').val()
+	customG = $('#customG').val()
+	customB = $('#customB').val()
+	l = 0
+	if greyscaleMethod is 'ccir'
+		l += imgData[p] * 0.2989 * customR * imgData[p+3] / 255 #Red
+		l += imgData[p+1] * 0.5870 * customG * imgData[p+3] / 255 #Green
+		l += imgData[p+2] * 0.1140 * customB * imgData[p+3] / 255 #Blue
+	else if greyscaleMethod is 'cie'
+		l += imgData[p] * 0.2126 * customR * imgData[p+3] / 255 #Red
+		l += imgData[p+1] * 0.7152 * customG * imgData[p+3] / 255 #Green
+		l += imgData[p+2] * 0.0722 * customB * imgData[p+3] / 255 #Blue
+	return l
+
 render = (src) ->
 	image = new Image();
 	image.onload = ->
+		rowLength = $('#row_length').val()
 		canvas = document.getElementById("adjust_image")
 		ctx = canvas.getContext("2d")
-		ctx.clearRect(0, 0, canvas.width, canvas.height)
-		canvas.width = image.width
-		canvas.height = image.height
-		ctx.drawImage(image, 0, 0, image.width, image.height)
+		aspectRatio = image.height/image.width
+		canvas.width = rowLength
+		canvas.height = rowLength*aspectRatio
+		ctx.drawImage(image, 0, 0, canvas.width, canvas.height)
 		imgToText()
 	image.src = src
+
+theImage = ''
 
 loadImage = (src) ->
 	# Prevent any non-image file type from being read.
@@ -133,7 +151,8 @@ loadImage = (src) ->
 	# Create our FileReader and run the results through the render function.
 	reader = new FileReader()
 	reader.onload = (e) ->
-		render(e.target.result)
+		theImage = e.target.result
+		render(theImage)
 	reader.readAsDataURL(src)
 
 # Drag and drop listeners
@@ -152,6 +171,33 @@ $('document').ready ->
 
 $('#font_family').change ->
 	drawCharacterSet()
+	if theImage != ''
+		render(theImage)
 
 $('#font_size').change ->
 	drawCharacterSet()
+	if theImage != ''
+		render(theImage)
+
+$('#row_length').change ->
+	if theImage != ''
+		render(theImage)
+
+$('#customR').change ->
+	if theImage != ''
+		render(theImage)
+
+$('#customG').change ->
+	if theImage != ''
+		render(theImage)
+
+$('#customB').change ->
+	if theImage != ''
+		render(theImage)
+
+$('form').submit ->
+	return false
+
+$('#bw').change ->
+	if theImage != ''
+		render(theImage)
