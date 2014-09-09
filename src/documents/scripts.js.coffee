@@ -8,6 +8,8 @@ drawCharacterSet = ->
 	chars_canvas = document.getElementById('character_set')
 	chars_canvas.width = chars_canvas.width
 	chars = chars_canvas.getContext('2d')
+	if document.getElementById('for_print').checked
+		fontSize = 72
 	chars.font = fontSize + 'px ' + fontFamily
 	chars.textBaseline = 'bottom'
 	char =
@@ -215,5 +217,10 @@ $('#dithering').change ->
 
 $('#line_height').change ->
 	aspect = (char.width / (char.height / 1.5)) / $(this).val()
+	if theImage != ''
+		render(theImage)
+
+$('#for_print').change ->
+	drawCharacterSet()
 	if theImage != ''
 		render(theImage)

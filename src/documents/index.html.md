@@ -55,9 +55,9 @@ layout: "normal"
 		  <option value="green">Green</option>
 		  <option value="blue">Blue</option>
 		</select><br />
-
+		<!--
 		<input type="checkbox" id="plain_text" checked></input> Plain text 
-		
+		-->
 		<input type="checkbox" id="dithering" checked></input> Dither<br />
 
 		<input type="range" id="customR" min="0" max="3" value="1" step="0.01">Red<br />
