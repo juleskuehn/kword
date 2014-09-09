@@ -7,8 +7,7 @@
 <body>
 	<%- @document.content %>
 	<script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
-	<script src="/vendor/underscore-min.js"></script>
-	<script src="/vendor/pixastic.js"></script>
-	<%- @getBlock("scripts").add(["/scripts.js"]).toHTML() %>
+	<script src="vendor/underscore-min.js"></script>
+	<%- @getBlock("scripts").add(["scripts.js"]).toHTML() %>
 </body>
 </html>
