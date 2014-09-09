@@ -1,4 +1,5 @@
 aspect = 0
+char = {}
 
 drawCharacterSet = ->
 
@@ -12,6 +13,7 @@ drawCharacterSet = ->
 	char =
 		width: chars.measureText('.').width
 		height: fontSize * 1.5
+	aspect = (char.width / fontSize) / $('#line_height').val()
 	lines = [
 		"1234567890-="
 		"!@#$%^&*()_+"
@@ -22,7 +24,6 @@ drawCharacterSet = ->
 		"zxcvbkm,./\\|"
 		"ZXCVBKM<>? "
 	]
-	lines = [" #"]
 	window.weights = []
 	for i in [0...lines.length]
 		chars.fillText lines[i], 0, char.height*(i+1)
@@ -53,32 +54,8 @@ drawCharacterSet = ->
 	drawGradient()
 
 drawGradient = ->
-	fontFamily = $('#font_family').val()
-	fontSize = $('#font_size').val()
-	gradient_canvas = document.getElementById('adjust_gradient')
-	gradient_canvas.width = gradient_canvas.width
-	gradient = gradient_canvas.getContext('2d')
-	gradient.font = fontSize + 'px ' + fontFamily
-	fontSize *= 0.4
-	gradient.font = fontSize + 'px ' + fontFamily
-	gradient.textBaseline = 'bottom'
-	char =
-		width: gradient.measureText('.').width
-		height: fontSize * 1.5
-	aspect = char.width / char.height
-	line = ''
-	n = 2
-	for i in [0...window.weights.length] by 12
-		for j in [0...12]
-			if i+j >= window.weights.length
-				break
-			line += Array(5).join window.weights[i+j].character
-			line += ' '
-		for k in [1..3]
-			gradient.fillText line, 10, char.height * n
-			n++
-		n++
-		line = ''
+
+	console.log('to-do: gradient code')
 
 entityMap =
 	"&": "&amp;"
@@ -97,7 +74,10 @@ imgToText = ->
 	dither = document.getElementById('dithering').checked
 	gr = greyscale(source)
 	fontFamily = $('#font_family').val()
-	$('#output_ascii').css('font-family',fontFamily).css('line-height','64%')
+	fontSize = $('#font_size').val()
+	$('#output_ascii').css('font-family',fontFamily)\
+		.css('font-size',fontSize+'px')\
+		.css('line-height',fontSize*$('#line_height').val()+'px')
 	text = ''
 	[h,w] = [source.height,source.width]
 	for i in [0...h]
@@ -140,6 +120,14 @@ greyscale = (canvas) ->
 			[r,g,b] = [0.2989, 0.5870, 0.1140]
 		else if greyscaleMethod is 'cie'
 			[r,g,b] = [0.2126, 0.7152, 0.0722]
+		else if greyscaleMethod is 'flat'
+			[r,g,b] = [0.3333, 0.3333, 0.3333]
+		else if greyscaleMethod is 'red'
+			[r,g,b] = [1, 0, 0]
+		else if greyscaleMethod is 'green'
+			[r,g,b] = [0, 1, 0]
+		else if greyscaleMethod is 'blue'
+			[r,g,b] = [0, 0, 1]
 		l += imgData[p] * r * customR * imgData[p+3] / 255 #Red
 		l += imgData[p+1] * g * customG * imgData[p+3] / 255 #Green
 		l += imgData[p+2] * b * customB * imgData[p+3] / 255 #Blue
@@ -154,7 +142,7 @@ render = (src) ->
 		ctx = canvas.getContext("2d")
 		aspectRatio = image.height/image.width
 		canvas.width = rowLength
-		canvas.height = rowLength*aspectRatio
+		canvas.height = rowLength*aspectRatio*aspect
 		ctx.drawImage(image, 0, 0, canvas.width, canvas.height)
 		imgToText()
 	image.src = src
@@ -176,7 +164,7 @@ loadImage = (src) ->
 
 # Drag and drop listeners
 
-target = document.getElementById("adjust_image")
+target = document.getElementById("container")
 target.addEventListener("dragover", (e) ->
 	e.preventDefault()
 , true)
@@ -222,5 +210,10 @@ $('#bw').change ->
 		render(theImage)
 
 $('#dithering').change ->
+	if theImage != ''
+		render(theImage)
+
+$('#line_height').change ->
+	aspect = (char.width / (char.height / 1.5)) / $(this).val()
 	if theImage != ''
 		render(theImage)
