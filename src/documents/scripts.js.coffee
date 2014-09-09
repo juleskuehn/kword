@@ -22,6 +22,7 @@ drawCharacterSet = ->
 		"zxcvbkm,./\\|"
 		"ZXCVBKM<>? "
 	]
+	lines = [" #"]
 	window.weights = []
 	for i in [0...lines.length]
 		chars.fillText lines[i], 0, char.height*(i+1)
@@ -93,39 +94,57 @@ escapeHtml = (string) ->
 imgToText = ->
 	source = document.getElementById("adjust_image")
 	cvs = source.getContext('2d')
+	dither = document.getElementById('dithering').checked
+	gr = greyscale(source)
 	fontFamily = $('#font_family').val()
 	$('#output_ascii').css('font-family',fontFamily).css('line-height','64%')
 	text = ''
-	for i in [0...source.height]
+	[h,w] = [source.height,source.width]
+	for i in [0...h]
 		row = ''
-		window.imgData = cvs.getImageData(0,i,source.width,1)
-		for p in [0...imgData.data.length] by 4
-			b = greyscale(imgData.data,p)
-			# find corresponding ascii character
+		for j in [0...w]
+			b = gr[i*w + j]
+			# find closest ascii brightness value
 			closest = null
 			for c in window.weights
-				if closest is null or Math.abs(c.brightness-b) < closeness
+				if closest is null or Math.abs(c.brightness-b) < Math.abs(err)
 					closest = c
-					closeness = Math.abs(c.brightness-b)
+					err = b-c.brightness
+			# floyd-steinberg dithering
+			if dither
+				gr[i*w + j] = c.brightness
+				if j+1 < w
+					gr[i*w + j+1] += (err * 7/16)
+				if i+1 < h and j-1 > 0
+					gr[(i+1)*w + j-1] += (err * 3/16)
+				if i+1 < h
+					gr[(i+1)*w + j] += (err * 5/16)
+				if i+1 < h and j+1 < w
+					gr[(i+1)*w + j+1] += (err * 1/16)
 			row += closest.character
 		text += escapeHtml(row) + '<br />'
 	$('#output_ascii').html(text)
 
-greyscale = (imgData,p) ->
+greyscale = (canvas) ->
 	greyscaleMethod = $('#bw').val()
 	customR = $('#customR').val()
 	customG = $('#customG').val()
 	customB = $('#customB').val()
-	l = 0
-	if greyscaleMethod is 'ccir'
-		l += imgData[p] * 0.2989 * customR * imgData[p+3] / 255 #Red
-		l += imgData[p+1] * 0.5870 * customG * imgData[p+3] / 255 #Green
-		l += imgData[p+2] * 0.1140 * customB * imgData[p+3] / 255 #Blue
-	else if greyscaleMethod is 'cie'
-		l += imgData[p] * 0.2126 * customR * imgData[p+3] / 255 #Red
-		l += imgData[p+1] * 0.7152 * customG * imgData[p+3] / 255 #Green
-		l += imgData[p+2] * 0.0722 * customB * imgData[p+3] / 255 #Blue
-	return l
+	greyArray = []
+	cvs = canvas.getContext('2d')
+	imgData = cvs.getImageData(0,0,canvas.width,canvas.height)
+	imgData = imgData.data
+	for p in [0...imgData.length] by 4
+		l = 0
+		if greyscaleMethod is 'ccir'
+			[r,g,b] = [0.2989, 0.5870, 0.1140]
+		else if greyscaleMethod is 'cie'
+			[r,g,b] = [0.2126, 0.7152, 0.0722]
+		l += imgData[p] * r * customR * imgData[p+3] / 255 #Red
+		l += imgData[p+1] * g * customG * imgData[p+3] / 255 #Green
+		l += imgData[p+2] * b * customB * imgData[p+3] / 255 #Blue
+		greyArray.push(l)
+	return greyArray
 
 render = (src) ->
 	image = new Image();
@@ -199,5 +218,9 @@ $('form').submit ->
 	return false
 
 $('#bw').change ->
+	if theImage != ''
+		render(theImage)
+
+$('#dithering').change ->
 	if theImage != ''
 		render(theImage)

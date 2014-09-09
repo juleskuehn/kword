@@ -53,6 +53,7 @@ layout: "normal"
 			  <option value="ccir">CCIR 601</option>
 			</select>
 			<input type="checkbox" id="plain_text" checked></input> Output plain text
+			<input type="checkbox" id="dithering" checked></input> Dither
 			<br />
 			Row length: <input type="text" id="row_length" value="78"></input> characters
 			<input type="range" id="customR" min="0" max="3" value="1" step="0.01">Red
