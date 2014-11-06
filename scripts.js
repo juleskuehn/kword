@@ -22,7 +22,7 @@
       height: fontSize * 1.5
     };
     aspect = (char.width / fontSize) / $('#line_height').val();
-    lines = ["1234567890-=", "!@#$%^&*()_+", "qwfpgjluy;[]", "QWFPGJLUY:{}", "arstdhneio'`", "ARSTDHNEIO\"~", "zxcvbkm,./\\|", "ZXCVBKM<>? "];
+    lines = $('#char_set').val();
     window.weights = [];
     for (i = _i = 0, _ref = lines.length; 0 <= _ref ? _i < _ref : _i > _ref; i = 0 <= _ref ? ++_i : --_i) {
       chars.fillText(lines[i], 0, char.height * (i + 1));
@@ -209,10 +209,18 @@
   }, true);
 
   $('document').ready(function() {
-    return drawCharacterSet();
+    drawCharacterSet();
+    return $('#output_ascii').draggable();
   });
 
   $('#font_family').change(function() {
+    drawCharacterSet();
+    if (theImage !== '') {
+      return render(theImage);
+    }
+  });
+
+  $('#char_set').change(function() {
     drawCharacterSet();
     if (theImage !== '') {
       return render(theImage);

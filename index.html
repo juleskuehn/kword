@@ -19,6 +19,7 @@
 			<form>
 				Font: <input type="text" id="font_family" value="Monospace"></input><br />
 				Size: <input type="text" id="font_size" value="10"></input><br />
+				Character Set (include space if desired): <input type="textarea" id="char_set" value=" .:=-+%#o0XH8M$&amp; "></input><br />			
 				<input type="checkbox" id="for_print"></input> For printing
 			</form>
 			<canvas id="character_set" width="10000" height="10000" style="display:none"></canvas>
@@ -80,8 +81,54 @@
 
 
 </div>
-	<script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
 	<script src="vendor/underscore-min.js"></script>
-	<script defer="defer"  src="scripts.js"></script>
+	<script src="vendor/jquery.js"></script>
+	<script src="vendor/jquery-ui.min.js"></script>
+	<script >(function(){
+	/* Did we just livereload? */
+var log = !!(localStorage && console && console.log && true);
+if ( log && localStorage.getItem('/docpad-livereload/reloaded') === 'yes' ) {
+	localStorage.removeItem('/docpad-livereload/reloaded');
+	console.log('LiveReload completed at', new Date())
+}
+
+/* Listen for the regenerated event and perform a reload of the page when the event occurs */
+var listen = function(){
+	var primus = new Primus('/docpad-livereload');
+	primus.on('data', function(data){
+		if ( data && data.message ) {
+			if ( data.message === 'generateBefore' ) {
+				if ( log ) {
+					console.log('LiveReload started at', new Date());
+				}
+				if ( typeof document.getElementsByTagName !== 'undefined' ) {
+	document.getElementsByTagName('html')[0].className += ' wait';
+}
+			}
+			else if ( data.message === 'generateAfter' ) {
+				if ( log ) {
+					localStorage.setItem('/docpad-livereload/reloaded', 'yes');
+				}
+				document.location.reload();
+			}
+		}
+	});
+};
+	/* Inject socket into our page */
+var inject = function(){
+	var t = document.createElement('script');
+	t.type = 'text/javascript';
+	t.async = 'async';
+	t.src = '/primus/primus.js';
+	t.onload = listen;
+	var s = document.getElementsByTagName('script')[0];
+	s.parentNode.insertBefore(t, s);
+};
+	if ( typeof Primus !== 'undefined' ) {
+		listen();
+	} else {
+		inject();
+	}
+})();</script><script defer="defer"  src="scripts.js"></script>
 </body>
 </html>
