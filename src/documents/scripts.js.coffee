@@ -1,14 +1,12 @@
 aspect = 0
 char = {}
-subpixelX = 1
-subpixelY = 1
+subpixels = 1
 
 drawCharacterSet = ->
 
 	fontFamily = $('#font_family').val()
 	fontSize = $('#font_size').val()
-	subpixelX = $('#subpixelX').val()
-	subpixelY = $('#subpixelY').val()
+	subpixels = $('#subpixels').val()
 	chars_canvas = document.getElementById('character_set')
 	chars_canvas.width = chars_canvas.width
 	chars = chars_canvas.getContext('2d')
@@ -24,15 +22,18 @@ drawCharacterSet = ->
 	window.weights = []
 	for i in [0...lines.length]
 		chars.fillText lines[i], 0, char.height*(i+1)
-		for j in [0...lines[i].length] by 1
-			imgData = chars.getImageData(\
-				char.width * j, char.height * i, \
-				char.width, char.height )
-			weight = 0
-			for p in [3...imgData.data.length] by 4
-				weight += imgData.data[p]
-			window.weights.push {img:imgData,darkness:weight,\
-				character:lines[i][j]}
+		for j in [0...lines[i].length]
+			for x in [0...subpixels]
+				for y in [0...subpixels]
+					imgData = chars.getImageData(\
+						char.width * (j + x / subpixels), \
+						char.height * (i + y / subpixels), \
+						char.width / subpixels, char.height / subpixels)
+					weight = 0 # subpixel weight
+					for p in [3...imgData.data.length] by 4
+						weight += imgData.data[p]
+					window.weights.push {img:imgData,darkness:weight,character:lines[i][j],x:x,y:y}
+
 	for i in [0...lines.length] by 1
 		for j in [0...lines[i].length]
 			chars.strokeStyle = '#ffff00'
@@ -69,7 +70,7 @@ imgToText = ->
 	source = document.getElementById("adjust_image")
 	cvs = source.getContext('2d')
 	dither = document.getElementById('dithering').checked
-	gr = greyscale(source)
+	gr = greyscale(source) # array of pixel values
 	fontFamily = $('#font_family').val()
 	fontSize = $('#font_size').val()
 	$('#output_ascii').css('font-family',fontFamily)\
@@ -77,29 +78,47 @@ imgToText = ->
 		.css('line-height',fontSize*$('#line_height').val()+'px')
 	text = ''
 	[h,w] = [source.height,source.width]
-	for i in [0...h]
+	sp = subpixels
+	for i in [0...h/sp] # loop through 'character grid' rows
 		row = ''
-		for j in [0...w]
-			b = gr[i*w + j]
+		for j in [0...w/sp] # loop through 'character grid' cols
+			compare = []
+			for x in [0...sp] # subpixel x
+				for y in [0...sp] # subpixel y
+					b = gr[i*w*sp + j*sp + x + y*w]
+					for c in window.weights
+						thisChar = _.find(compare, (n) ->
+							return n.character is c.character
+						)
+						if thisChar is undefined
+							compare.push({character:c.character,err:[]})
+						thisChar = _.find(compare, (n) ->
+							return n.character is c.character
+						)
+						thisChar.err.push (c.brightness - b)
+			# now pick the closest shape based on total error summation
+			for c in compare
+				c.totalErr = 0
+				for s in c.err
+					c.totalErr += Math.abs(s)
+			bestChoice = _.min(compare,(w) -> w.totalErr).character
 			# find closest ascii brightness value
-			closest = null
-			for c in window.weights
-				if closest is null or Math.abs(c.brightness-b) < Math.abs(err)
-					closest = c
-					err = b-c.brightness
+			
+
 			# floyd-steinberg dithering
-			if dither
-				gr[i*w + j] = c.brightness
-				if j+1 < w
-					gr[i*w + j+1] += (err * 7/16)
-				if i+1 < h and j-1 > 0
-					gr[(i+1)*w + j-1] += (err * 3/16)
-				if i+1 < h
-					gr[(i+1)*w + j] += (err * 5/16)
-				if i+1 < h and j+1 < w
-					gr[(i+1)*w + j+1] += (err * 1/16)
-			row += closest.character
+#			if dither
+#				gr[i*w + j] = c.brightness
+#				if j+1 < w
+#					gr[i*w + j+1] += (err * 7/16)
+#				if i+1 < h and j-1 > 0
+#					gr[(i+1)*w + j-1] += (err * 3/16)
+#				if i+1 < h
+#					gr[(i+1)*w + j] += (err * 5/16)
+#				if i+1 < h and j+1 < w
+#					gr[(i+1)*w + j+1] += (err * 1/16)
+			row += bestChoice
 		text += escapeHtml(row) + '<br />'
+		console.log(row)
 	$('#output_ascii').html(text)
 
 greyscale = (canvas) ->
@@ -138,8 +157,8 @@ render = (src) ->
 		canvas = document.getElementById("adjust_image")
 		ctx = canvas.getContext("2d")
 		aspectRatio = image.height/image.width
-		canvas.width = rowLength * subpixelX
-		canvas.height = rowLength*aspectRatio*aspect * subpixelY
+		canvas.width = rowLength * subpixels
+		canvas.height = rowLength*aspectRatio*aspect * subpixels
 		ctx.drawImage(image, 0, 0, canvas.width, canvas.height)
 		imgToText()
 	image.src = src
@@ -193,12 +212,7 @@ $('#row_length').change ->
 	if theImage != ''
 		render(theImage)
 
-$('#subpixelX').change ->
-	drawCharacterSet()
-	if theImage != ''
-		render(theImage)
-
-$('#subpixelY').change ->
+$('#subpixels').change ->
 	drawCharacterSet()
 	if theImage != ''
 		render(theImage)
