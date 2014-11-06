@@ -67,6 +67,8 @@ layout: "normal"
 
 		Width: <input type="text" id="row_length" value="74"></input><br />
 		Spacing: <input type="text" id="line_height" value="1"></input><br />
+		SubpixelX: <input type="text" id="subpixelX" value="1"></input><br />
+		SubpixelY: <input type="text" id="subpixelY" value="1"></input><br />
 
 	</form>
 

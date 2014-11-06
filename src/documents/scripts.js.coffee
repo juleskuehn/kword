@@ -1,10 +1,14 @@
 aspect = 0
 char = {}
+subpixelX = 1
+subpixelY = 1
 
 drawCharacterSet = ->
 
 	fontFamily = $('#font_family').val()
 	fontSize = $('#font_size').val()
+	subpixelX = $('#subpixelX').val()
+	subpixelY = $('#subpixelY').val()
 	chars_canvas = document.getElementById('character_set')
 	chars_canvas.width = chars_canvas.width
 	chars = chars_canvas.getContext('2d')
@@ -134,8 +138,8 @@ render = (src) ->
 		canvas = document.getElementById("adjust_image")
 		ctx = canvas.getContext("2d")
 		aspectRatio = image.height/image.width
-		canvas.width = rowLength
-		canvas.height = rowLength*aspectRatio*aspect
+		canvas.width = rowLength * subpixelX
+		canvas.height = rowLength*aspectRatio*aspect * subpixelY
 		ctx.drawImage(image, 0, 0, canvas.width, canvas.height)
 		imgToText()
 	image.src = src
@@ -186,6 +190,16 @@ $('#font_size').change ->
 		render(theImage)
 
 $('#row_length').change ->
+	if theImage != ''
+		render(theImage)
+
+$('#subpixelX').change ->
+	drawCharacterSet()
+	if theImage != ''
+		render(theImage)
+
+$('#subpixelY').change ->
+	drawCharacterSet()
 	if theImage != ''
 		render(theImage)
 
