@@ -17,6 +17,7 @@ layout: "normal"
 			<form>
 				Font: <input type="text" id="font_family" value="Monospace"></input><br />
 				Size: <input type="text" id="font_size" value="10"></input><br />
+				Character Set (include space if desired): <input type="textarea" id="char_set" value=" .:=-+%#o0XH8M$&amp; "></input><br />			
 				<input type="checkbox" id="for_print"></input> For printing
 			</form>
 			<canvas id="character_set" width="10000" height="10000" style="display:none"></canvas>

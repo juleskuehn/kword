@@ -16,16 +16,7 @@ drawCharacterSet = ->
 		width: chars.measureText('.').width
 		height: fontSize * 1.5
 	aspect = (char.width / fontSize) / $('#line_height').val()
-	lines = [
-		"1234567890-="
-		"!@#$%^&*()_+"
-		"qwfpgjluy;[]"
-		"QWFPGJLUY:{}"
-		"arstdhneio'`"
-		"ARSTDHNEIO\"~"
-		"zxcvbkm,./\\|"
-		"ZXCVBKM<>? "
-	]
+	lines = $('#char_set').val()
 	window.weights = []
 	for i in [0...lines.length]
 		chars.fillText lines[i], 0, char.height*(i+1)
@@ -177,8 +168,14 @@ target.addEventListener("drop", (e) ->
 
 $('document').ready ->
 	drawCharacterSet()
+	$('#output_ascii').draggable()
 
 $('#font_family').change ->
+	drawCharacterSet()
+	if theImage != ''
+		render(theImage)
+
+$('#char_set').change ->
 	drawCharacterSet()
 	if theImage != ''
 		render(theImage)
@@ -224,3 +221,4 @@ $('#for_print').change ->
 	drawCharacterSet()
 	if theImage != ''
 		render(theImage)
+
