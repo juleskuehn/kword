@@ -32,7 +32,7 @@ drawCharacterSet = ->
 					weight = 0 # subpixel weight
 					for p in [3...imgData.data.length] by 4
 						weight += imgData.data[p]
-					window.weights.push {img:imgData,darkness:weight,character:lines[i][j],x:x,y:y}
+					window.weights.push {darkness:weight,character:lines[i][j],x:x,y:y}
 
 	for i in [0...lines.length] by 1
 		for j in [0...lines[i].length]
@@ -49,11 +49,6 @@ drawCharacterSet = ->
 	minWeight = _.min(window.weights,(w) -> w.darkness).darkness
 	for w in window.weights
 		w.brightness = 255 - (255*(w.darkness-minWeight))/(maxWeight-minWeight)
-	drawGradient()
-
-drawGradient = ->
-
-	console.log('to-do: gradient code')
 
 entityMap =
 	"&": "&amp;"
@@ -86,39 +81,39 @@ imgToText = ->
 			for x in [0...sp] # subpixel x
 				for y in [0...sp] # subpixel y
 					b = gr[i*w*sp + j*sp + x + y*w]
-					for c in window.weights
+					for ch in [0...window.weights.length] by sp*sp
+						c = window.weights[ch+x*sp+y]
 						thisChar = _.find(compare, (n) ->
 							return n.character is c.character
 						)
 						if thisChar is undefined
 							compare.push({character:c.character,err:[]})
-						thisChar = _.find(compare, (n) ->
-							return n.character is c.character
-						)
-						thisChar.err.push (c.brightness - b)
+							thisChar = _.find(compare, (n) ->
+								return n.character is c.character
+							)
+						err = c.brightness - b
+						thisChar.err.push err
+						# floyd-steinberg dithering
+						if dither
+							if j+1 < w
+								gr[i*w + j+1] += (err * 7/16)
+							if i+1 < h and j-1 > 0
+								gr[(i+1)*w + j-1] += (err * 3/16)
+							if i+1 < h
+								gr[(i+1)*w + j] += (err * 5/16)
+							if i+1 < h and j+1 < w
+								gr[(i+1)*w + j+1] += (err * 1/16)
+
+
 			# now pick the closest shape based on total error summation
 			for c in compare
 				c.totalErr = 0
 				for s in c.err
 					c.totalErr += Math.abs(s)
 			bestChoice = _.min(compare,(w) -> w.totalErr).character
-			# find closest ascii brightness value
-			
 
-			# floyd-steinberg dithering
-#			if dither
-#				gr[i*w + j] = c.brightness
-#				if j+1 < w
-#					gr[i*w + j+1] += (err * 7/16)
-#				if i+1 < h and j-1 > 0
-#					gr[(i+1)*w + j-1] += (err * 3/16)
-#				if i+1 < h
-#					gr[(i+1)*w + j] += (err * 5/16)
-#				if i+1 < h and j+1 < w
-#					gr[(i+1)*w + j+1] += (err * 1/16)
 			row += bestChoice
 		text += escapeHtml(row) + '<br />'
-		console.log(row)
 	$('#output_ascii').html(text)
 
 greyscale = (canvas) ->
