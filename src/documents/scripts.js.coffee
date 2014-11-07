@@ -74,14 +74,19 @@ imgToText = ->
 	text = ''
 	[h,w] = [source.height,source.width]
 	sp = subpixels
+	autoSp = true
 	for i in [0...h/sp] # loop through 'character grid' rows
 		row = ''
 		for j in [0...w/sp] # loop through 'character grid' cols
 			compare = []
-			for x in [0...sp] # subpixel x
-				for y in [0...sp] # subpixel y
-					b = gr[i*w*sp + j*sp + x + y*w]
-					for ch in [0...window.weights.length] by sp*sp
+			for ch in [0...window.weights.length] by sp*sp
+				grD = [] # character pixel values (for dithering)
+				for x in [0...sp] # subpixel x
+					for y in [0...sp] # subpixel y
+						grD.push(gr[i*w*sp + j*sp + x + y*w])
+				for x in [0...sp] # subpixel x
+					for y in [0...sp] # subpixel y
+						b = grD[x*sp+y]
 						c = window.weights[ch+x*sp+y]
 						thisChar = _.find(compare, (n) ->
 							return n.character is c.character
@@ -93,6 +98,8 @@ imgToText = ->
 							)
 						err = c.brightness - b
 						thisChar.err.push err
+						# subpixel dithering
+						
 			# now pick the closest shape based on total error summation
 			for c in compare
 				c.shapeErr = 0
@@ -102,9 +109,6 @@ imgToText = ->
 
 			bestChoice = _.min(compare,(w) -> w.shapeErr)
 			row += bestChoice.character
-
-			if dither # dithering, full character pixels
-				err = bestChoice.totlErr / sp*sp
 
 		text += escapeHtml(row) + '<br />'
 	$('#output_ascii').html(text)
