@@ -68,8 +68,6 @@ imgToText = ->
 	gr = greyscale(source) # array of pixel values
 	fontFamily = $('#font_family').val()
 	fontSize = $('#font_size').val()
-	shapeVal = $('#shape_val').val()
-	colorVal = $('#color_val').val()
 	$('#output_ascii').css('font-family',fontFamily)\
 		.css('font-size',fontSize+'px')\
 		.css('line-height',fontSize*$('#line_height').val()+'px')
@@ -99,12 +97,10 @@ imgToText = ->
 			for c in compare
 				c.shapeErr = 0
 				c.colorErr = 0
-				for s in c.err
-					c.shapeErr += Math.abs(s)
-					c.colorErr += s
-				c.totalErr = c.shapeErr*shapeVal + c.colorErr*colorVal
+				for err in c.err
+					c.shapeErr += Math.abs(err)
 
-			bestChoice = _.min(compare,(w) -> w.totalErr)
+			bestChoice = _.min(compare,(w) -> w.shapeErr)
 			row += bestChoice.character
 
 			if dither # dithering, full character pixels
