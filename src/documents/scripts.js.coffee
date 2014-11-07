@@ -68,6 +68,8 @@ imgToText = ->
 	gr = greyscale(source) # array of pixel values
 	fontFamily = $('#font_family').val()
 	fontSize = $('#font_size').val()
+	shapeVal = $('#shape_val').val()
+	colorVal = $('#color_val').val()
 	$('#output_ascii').css('font-family',fontFamily)\
 		.css('font-size',fontSize+'px')\
 		.css('line-height',fontSize*$('#line_height').val()+'px')
@@ -93,26 +95,21 @@ imgToText = ->
 							)
 						err = c.brightness - b
 						thisChar.err.push err
-						# floyd-steinberg dithering
-						if dither
-							if j+1 < w
-								gr[i*w + j+1] += (err * 7/16)
-							if i+1 < h and j-1 > 0
-								gr[(i+1)*w + j-1] += (err * 3/16)
-							if i+1 < h
-								gr[(i+1)*w + j] += (err * 5/16)
-							if i+1 < h and j+1 < w
-								gr[(i+1)*w + j+1] += (err * 1/16)
-
-
 			# now pick the closest shape based on total error summation
 			for c in compare
-				c.totalErr = 0
+				c.shapeErr = 0
+				c.colorErr = 0
 				for s in c.err
-					c.totalErr += Math.abs(s)
-			bestChoice = _.min(compare,(w) -> w.totalErr).character
+					c.shapeErr += Math.abs(s)
+					c.colorErr += s
+				c.totalErr = c.shapeErr*shapeVal + c.colorErr*colorVal
 
-			row += bestChoice
+			bestChoice = _.min(compare,(w) -> w.totalErr)
+			row += bestChoice.character
+
+			if dither # dithering, full character pixels
+				err = bestChoice.totlErr / sp*sp
+
 		text += escapeHtml(row) + '<br />'
 	$('#output_ascii').html(text)
 
@@ -221,6 +218,14 @@ $('#customG').change ->
 		render(theImage)
 
 $('#customB').change ->
+	if theImage != ''
+		render(theImage)
+
+$('#shape_val').change ->
+	if theImage != ''
+		render(theImage)
+
+$('#color_val').change ->
 	if theImage != ''
 		render(theImage)
 

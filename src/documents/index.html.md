@@ -65,9 +65,11 @@ layout: "normal"
 		<input type="range" id="customG" min="0" max="3" value="1" step="0.01">Green<br />
 		<input type="range" id="customB" min="0" max="3" value="1" step="0.01">Blue<br />
 
-		Width: <input type="text" id="row_length" value="74"></input><br />
-		Spacing: <input type="text" id="line_height" value="1"></input><br />
-		Subpixels: <input type="text" id="subpixels" value="1"></input><br />
+		<input type="range" id="row_length" min="10" max="200" value="78" step="1">Line Length<br />
+		<input type="range" id="line_height" min="0" max="2" value="1" step="0.01">Line Spacing<br />
+		<input type="range" id="subpixels" min="1" max="7" value="1" step="1">Subpixels<br />
+		<input type="range" id="shape_val" min="0" max="1" value="0.5" step="0.01">Shape<br />
+		<input type="range" id="color_val" min="0" max="1" value="0.5" step="0.01">Tone<br />
 
 	</form>
 
