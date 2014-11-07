@@ -23,16 +23,16 @@ drawCharacterSet = ->
 	for i in [0...lines.length]
 		chars.fillText lines[i], 0, char.height*(i+1)
 		for j in [0...lines[i].length]
-			for x in [0...subpixels]
+			for y in [0...subpixels]
 				for y in [0...subpixels]
 					imgData = chars.getImageData(\
-						char.width * (j + x / subpixels), \
+						char.width * (j + y / subpixels), \
 						char.height * (i + y / subpixels), \
 						char.width / subpixels, char.height / subpixels)
 					weight = 0 # subpixel weight
 					for p in [3...imgData.data.length] by 4
 						weight += imgData.data[p]
-					window.weights.push {darkness:weight,character:lines[i][j],x:x,y:y}
+					window.weights.push {darkness:weight,character:lines[i][j],y:y,y:y}
 
 	for i in [0...lines.length] by 1
 		for j in [0...lines[i].length]
@@ -56,7 +56,7 @@ entityMap =
 	">": "&gt;"
 	'"': '&quot;'
 	"'": '&#39;'
-	"/": '&#x2F;'
+	"/": '&#y2F;'
 
 escapeHtml = (string) ->
 	return String(string).replace(/[&<>"'\/]/g, (s) -> return entityMap[s])
@@ -81,13 +81,13 @@ imgToText = ->
 			compare = []
 			for ch in [0...window.weights.length] by sp*sp
 				grD = [] # character pixel values (for dithering)
-				for x in [0...sp] # subpixel x
-					for y in [0...sp] # subpixel y
-						grD.push(gr[i*w*sp + j*sp + x + y*w])
-				for x in [0...sp] # subpixel x
-					for y in [0...sp] # subpixel y
-						b = grD[x*sp+y]
-						c = window.weights[ch+x*sp+y]
+				for y in [0...sp] # subpixel y
+					for x in [0...sp] # subpixel x
+						grD.push(gr[i*w*sp + j*sp + y + x*w])
+				for y in [0...sp] # subpixel y
+					for x in [0...sp] # subpixel x
+						b = grD[y*sp+x]
+						c = window.weights[ch+y*sp+x]
 						thisChar = _.find(compare, (n) ->
 							return n.character is c.character
 						)
@@ -99,7 +99,16 @@ imgToText = ->
 						err = c.brightness - b
 						thisChar.err.push err
 						# subpixel dithering
-						
+						# grD[y*sp+x] = c.brightness
+						if dither
+							if y+1 < sp
+								grD[y*sp+x+1] += (err * 7/16)
+							if x+1 < sp and y-1 > 0
+								grD[(y+1)*sp + x-1] += (err * 3/16)
+							if x+1 < sp
+								grD[(y+1)*sp + x] += (err * 5/16)
+							if x+1 < sp and y+1 < sp
+								grD[(y+1)*sp + j+1] += (err * 1/16)
 			# now pick the closest shape based on total error summation
 			for c in compare
 				c.shapeErr = 0
@@ -109,7 +118,6 @@ imgToText = ->
 
 			bestChoice = _.min(compare,(w) -> w.shapeErr)
 			row += bestChoice.character
-
 		text += escapeHtml(row) + '<br />'
 	$('#output_ascii').html(text)
 
@@ -147,11 +155,11 @@ render = (src) ->
 	image.onload = ->
 		rowLength = $('#row_length').val()
 		canvas = document.getElementById("adjust_image")
-		ctx = canvas.getContext("2d")
+		cty = canvas.getContext("2d")
 		aspectRatio = image.height/image.width
 		canvas.width = rowLength * subpixels
 		canvas.height = rowLength*aspectRatio*aspect * subpixels
-		ctx.drawImage(image, 0, 0, canvas.width, canvas.height)
+		cty.drawImage(image, 0, 0, canvas.width, canvas.height)
 		imgToText()
 	image.src = src
 
