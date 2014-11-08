@@ -24,7 +24,7 @@ drawCharacterSet = ->
 		chars.fillText lines[i], 0, char.height*(i+1)
 		for j in [0...lines[i].length]
 			for y in [0...subpixels]
-				for y in [0...subpixels]
+				for x in [0...subpixels]				##bugs here!!!
 					imgData = chars.getImageData(\
 						char.width * (j + y / subpixels), \
 						char.height * (i + y / subpixels), \
@@ -64,7 +64,8 @@ escapeHtml = (string) ->
 imgToText = ->
 	source = document.getElementById("adjust_image")
 	cvs = source.getContext('2d')
-	dither = document.getElementById('dithering').checked
+	ditherFine = document.getElementById('dither_fine').checked
+	ditherWide = document.getElementById('dither_wide').checked
 	gr = greyscale(source) # array of pixel values
 	fontFamily = $('#font_family').val()
 	fontSize = $('#font_size').val()
@@ -79,6 +80,8 @@ imgToText = ->
 		row = ''
 		for j in [0...w/sp] # loop through 'character grid' cols
 			compare = []
+
+			# loop through character weights, subpixels
 			for ch in [0...window.weights.length] by sp*sp
 				grD = [] # character pixel values (for dithering)
 				for y in [0...sp] # subpixel y
@@ -98,9 +101,10 @@ imgToText = ->
 							)
 						err = c.brightness - b
 						thisChar.err.push err
+
 						# subpixel dithering
 						# grD[y*sp+x] = c.brightness
-						if dither
+						if ditherFine
 							if y+1 < sp
 								grD[y*sp+x+1] += (err * 7/16)
 							if x+1 < sp and y-1 > 0
@@ -109,15 +113,35 @@ imgToText = ->
 								grD[(y+1)*sp + x] += (err * 5/16)
 							if x+1 < sp and y+1 < sp
 								grD[(y+1)*sp + j+1] += (err * 1/16)
+
 			# now pick the closest shape based on total error summation
 			for c in compare
 				c.shapeErr = 0
 				c.colorErr = 0
 				for err in c.err
 					c.shapeErr += Math.abs(err)
-
+					c.colorErr += err
 			bestChoice = _.min(compare,(w) -> w.shapeErr)
+
+			# don't forget to dither again
+			if ditherWide
+				err = bestChoice.err # microdither! :)
+				for y in [0...sp]
+					for x in [0...sp]
+						#gr[i*w*sp + j*sp + y + x*w]
+						if j+1 < w/sp # right side
+							gr[sp*(i*w+j+1)+y*w+x] += (err[y*sp+x] * 7/16)
+						if i+1 < h/sp and j-1 > 0 # left bottom
+							gr[sp*(w*(i+1)+j-1)+y*w+x] += (err[y*sp+x] * 3/16)
+						if i+1 < h/sp # bottom
+							gr[sp*(w*(i+1)+j)+y*w+x] += (err[y*sp+x] * 5/16)
+						if i+1 < h/sp and j+1 < w/sp # bottom right
+							gr[sp*(w*(i+1)+j+1)+y*w+x] += (err[y*sp+x] * 1/16)
+
+			# append best character to row
 			row += bestChoice.character
+
+		#append row to output ASCII
 		text += escapeHtml(row) + '<br />'
 	$('#output_ascii').html(text)
 
@@ -244,7 +268,11 @@ $('#bw').change ->
 	if theImage != ''
 		render(theImage)
 
-$('#dithering').change ->
+$('#dither_fine').change ->
+	if theImage != ''
+		render(theImage)
+
+$('#dither_wide').change ->
 	if theImage != ''
 		render(theImage)
 

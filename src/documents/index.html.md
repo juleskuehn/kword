@@ -59,7 +59,6 @@ layout: "normal"
 		<!--
 		<input type="checkbox" id="plain_text" checked></input> Plain text 
 		-->
-		<input type="checkbox" id="dithering" checked></input> Dither<br />
 
 		<input type="range" id="customR" min="0" max="3" value="1" step="0.01">Red<br />
 		<input type="range" id="customG" min="0" max="3" value="1" step="0.01">Green<br />
@@ -68,6 +67,11 @@ layout: "normal"
 		<input type="range" id="row_length" min="10" max="200" value="78" step="1">Line Length<br />
 		<input type="range" id="line_height" min="0" max="2" value="0.6" step="0.01">Line Spacing<br />
 		<input type="range" id="subpixels" min="1" max="7" value="1" step="1">Subpixels<br />
+
+		<input type="checkbox" id="dither_fine" checked></input> Dither (Fine)<br />
+
+		<input type="checkbox" id="dither_wide" checked></input> Dither (Wide)<br />
+
 
 	</form>
 
