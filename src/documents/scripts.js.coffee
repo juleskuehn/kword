@@ -70,14 +70,13 @@ drawCharacterSet = ->
 			chars.lineTo(char.width * (j), char.height * (i+1) )
 			chars.lineTo(char.width * j, char.height * i)
 			chars.stroke() 
-
-	maxWeight = _.max(window.weights,(w) -> w.darkness).darkness
-	minWeight = _.min(window.weights,(w) -> w.darkness).darkness
 	
+	for s in [1..subpixels]
+		maxWeight = _.max(window.weights[s-1],(w) -> w.darkness).darkness
+		minWeight = _.min(window.weights[s-1],(w) -> w.darkness).darkness
 	for s in [1..subpixels]
 		for w in window.weights[s-1]
 			w.brightness = Math.round(255 - (255*(w.darkness-minWeight))/(maxWeight-minWeight))
-			console.log('weights')
 
 entityMap =
 	"&": "&amp;"
@@ -102,7 +101,6 @@ imgToText = ->
 		.css('font-size',fontSize+'px')\
 		.css('line-height',fontSize*$('#line_height').val()+'px')
 	text = ''
-
 	bestChoice = []
 
 	# compare various character supersamples to find best match
@@ -118,11 +116,11 @@ imgToText = ->
 
 		for i in [0...h/s] # loop through 'character grid' rows
 
-			bestChoice.push []
+			bestChoice.push([])
 
 			for j in [0...w/s] # loop through 'character grid' cols
 
-				bestChoice[i].push []
+				bestChoice[i].push([])
 
 				compare = []
 
@@ -159,8 +157,9 @@ imgToText = ->
 						c.shapeErr += Math.abs(err)
 						c.colorErr += err
 
-				# and pick the closest shape based on total error summation
-				bestChoice[i][j].push _.min(compare,(w) -> w.shapeErr)
+				console.log compare
+
+				row = ''
 
 			# don't forget to dither again
 #			if ditherWide
@@ -176,12 +175,6 @@ imgToText = ->
 #							gr[sp*(w*(i+1)+j)+y*w+x] += (err[y*sp+x] * 5/16)
 #						if i+1 < h/sp and j+1 < w/sp # bottom right
 #							gr[sp*(w*(i+1)+j+1)+y*w+x] += (err[y*sp+x] * 1/16)
-
-	for i in [0...h/s] # loop through 'character grid' rows
-		row = ''
-		for j in [0...w/s] # loop through 'character grid' cols
-			# append best character to row
-			row += _.min(bestChoice[i][j],(c) -> c.shapeErr).character
 
 		#append row to output ASCII
 		text += escapeHtml(row) + '<br />'
