@@ -70,12 +70,14 @@ drawCharacterSet = ->
 			chars.lineTo(char.width * (j), char.height * (i+1) )
 			chars.lineTo(char.width * j, char.height * i)
 			chars.stroke() 
-	window.weights = _(window.weights).sortBy('darkness')
+
 	maxWeight = _.max(window.weights,(w) -> w.darkness).darkness
 	minWeight = _.min(window.weights,(w) -> w.darkness).darkness
-	for w in window.weights
-		w.brightness = Math.round(255 - (255*(w.darkness-minWeight))/(maxWeight-minWeight))
-		console.log('weights')
+	
+	for s in [1..subpixels]
+		for w in window.weights[s-1]
+			w.brightness = Math.round(255 - (255*(w.darkness-minWeight))/(maxWeight-minWeight))
+			console.log('weights')
 
 entityMap =
 	"&": "&amp;"
@@ -127,9 +129,9 @@ imgToText = ->
 				for ch in [0...window.weights[s-1].length] by s*s
 
 					grD = [] # character pixel values (for dithering)
-					for y in [0...sp] # subpixel y
-						for x in [0...sp] # subpixel x
-							grD.push(gr[i*w*sp + j*sp + y + x*w])
+					for y in [0...s] # subpixel y
+						for x in [0...s] # subpixel x
+							grD.push(gr[i*w*s + j*s + y + x*w])
 
 					for y in [0...s] # subpixel y
 						for x in [0...s] # subpixel x
@@ -137,8 +139,6 @@ imgToText = ->
 							b = grD[y*s+x]
 
 							c = window.weights[s-1][ch+y*s+x]
-
-							console.log c
 
 							thisChar = _.find(compare, (n) ->
 								return n.character is c.character and n.sp is s
@@ -177,14 +177,11 @@ imgToText = ->
 #						if i+1 < h/sp and j+1 < w/sp # bottom right
 #							gr[sp*(w*(i+1)+j+1)+y*w+x] += (err[y*sp+x] * 1/16)
 
-	for i in [0..rowLength]
-
+	for i in [0...h/s] # loop through 'character grid' rows
 		row = ''
-
-		for j in rowLength*aspectRatio*aspect
-
+		for j in [0...w/s] # loop through 'character grid' cols
 			# append best character to row
-			row += _.min(bestChoice[i][j],(w) -> w.shapeErr).character
+			row += _.min(bestChoice[i][j],(c) -> c.shapeErr).character
 
 		#append row to output ASCII
 		text += escapeHtml(row) + '<br />'
