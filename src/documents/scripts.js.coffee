@@ -215,28 +215,20 @@ greyscale = (canvas) ->
 
 render = (src) ->
 	console.log 'render'
-	$('#image').html ''
 	subpixels = $('#subpixels').val()
-	image = {}
 	for s in [1..subpixels]
-		console.log 'subpixel-render'
-		imagesHtml = '<canvas id="adjust_image_'+s+'" width="1" height="1" style="display:none"></canvas>'
-		$('#image').append imagesHtml
-		image[s] = new Image()
-		image[s].onload = ->
+		console.log 'subpixel='+s
+		image = new Image()
+		image.onload = ->
 			console.log 'img-onload'
 			rowLength = $('#row_length').val()
-			canvas = $('#adjust_image_'+s)
+			canvas = document.getElementById('adjust_image_'+s)
 			ctx = canvas.getContext("2d")
 			aspectRatio = image.height/image.width
 			canvas.width = rowLength * subpixels
 			canvas.height = rowLength*aspectRatio*aspect * subpixels
 			ctx.drawImage(image, 0, 0, canvas.width, canvas.height)
-		image[s].src = src
-
-	image[subpixels].onload = ->
-		console.log 'lets go'
-		imgToText()
+		image.src = src
 
 theImage = ''
 

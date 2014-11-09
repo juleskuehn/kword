@@ -39,6 +39,16 @@ layout: "normal"
 	</section>
 
 	<section id="image">
+		<canvas id="adjust_image_1" width="1" height="1" style="display:none"></canvas>
+		<canvas id="adjust_image_2" width="1" height="1" style="display:none"></canvas>
+		<canvas id="adjust_image_3" width="1" height="1" style="display:none"></canvas>
+		<canvas id="adjust_image_4" width="1" height="1" style="display:none"></canvas>
+		<canvas id="adjust_image_5" width="1" height="1" style="display:none"></canvas>
+		<canvas id="adjust_image_6" width="1" height="1" style="display:none"></canvas>
+		<canvas id="adjust_image_7" width="1" height="1" style="display:none"></canvas>
+		<canvas id="adjust_image_8" width="1" height="1" style="display:none"></canvas>
+		<canvas id="adjust_image_9" width="1" height="1" style="display:none"></canvas>
+		<canvas id="adjust_image_0" width="1" height="1" style="display:none"></canvas>
 	</section>
 
 	<form>
