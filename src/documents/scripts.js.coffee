@@ -77,6 +77,8 @@ escapeHtml = (string) ->
 
 imgToText = ->
 
+	console.log 'imgToText'
+
 	# get the settings right
 
 	ditherFine = document.getElementById('dither_fine').checked
@@ -88,13 +90,10 @@ imgToText = ->
 		.css('line-height',fontSize*$('#line_height').val()+'px')
 	text = ''
 
-	source = []
-
 	for s in [1..subpixels]
 
 		# get the images and attributes
-
-		source[s] = document.getElementById "adjust_image_"+s
+		source = document.getElementById('adjust_image_'+s)
 		cvs = source.getContext('2d')
 		[h,w] = [source.height,source.width]
 
@@ -198,12 +197,17 @@ greyscale = (canvas) ->
 	return greyArray
 
 render = (src) ->
+	console.log 'render'
 	$('#image').html ''
+	subpixels = $('#subpixels').val()
+	image = {}
 	for s in [1..subpixels]
+		console.log 'subpixel-render'
 		imagesHtml = '<canvas id="adjust_image_'+s+'" width="1" height="1" style="display:none"></canvas>'
 		$('#image').append imagesHtml
-		image = new Image()
-		image.onLoad = ->
+		image[s] = new Image()
+		image[s].onload = ->
+			console.log 'img-onload'
 			rowLength = $('#row_length').val()
 			canvas = $('#adjust_image_'+s)
 			ctx = canvas.getContext("2d")
@@ -211,9 +215,11 @@ render = (src) ->
 			canvas.width = rowLength * subpixels
 			canvas.height = rowLength*aspectRatio*aspect * subpixels
 			ctx.drawImage(image, 0, 0, canvas.width, canvas.height)
-			if s is subpixels
-				imgToText()
-		image.src = src
+		image[s].src = src
+
+	image[subpixels].onload = ->
+		console.log 'lets go'
+		imgToText()
 
 theImage = ''
 
@@ -227,6 +233,7 @@ loadImage = (src) ->
 	reader = new FileReader()
 	reader.onload = (e) ->
 		theImage = e.target.result
+		console.log 'imgload'
 		render(theImage)
 	reader.readAsDataURL(src)
 
