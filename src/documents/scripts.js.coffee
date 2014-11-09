@@ -157,9 +157,7 @@ imgToText = ->
 						c.shapeErr += Math.abs(err)
 						c.colorErr += err
 
-				console.log compare
-
-				row = ''
+				bestChoice[i][j].push _.min(compare,(w) -> w.shapeErr)
 
 			# don't forget to dither again
 #			if ditherWide
@@ -175,6 +173,15 @@ imgToText = ->
 #							gr[sp*(w*(i+1)+j)+y*w+x] += (err[y*sp+x] * 5/16)
 #						if i+1 < h/sp and j+1 < w/sp # bottom right
 #							gr[sp*(w*(i+1)+j+1)+y*w+x] += (err[y*sp+x] * 1/16)
+
+	for i in [0...rowLength]
+
+		row = ''
+
+		for j in [0...rowLength*aspectRatio*aspect]
+
+			# append best character to row
+			console.log _.min(bestChoice[i][j],(w) -> w.shapeErr).character
 
 		#append row to output ASCII
 		text += escapeHtml(row) + '<br />'
