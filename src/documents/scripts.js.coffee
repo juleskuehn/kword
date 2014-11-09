@@ -100,8 +100,8 @@ imgToText = ->
 	$('#output_ascii').css('font-family',fontFamily)\
 		.css('font-size',fontSize+'px')\
 		.css('line-height',fontSize*$('#line_height').val()+'px')
-	text = ''
 	bestChoice = []
+	$('#output_ascii').html ''
 
 	# compare various character supersamples to find best match
 	for s in [1..subpixels]
@@ -174,19 +174,17 @@ imgToText = ->
 #						if i+1 < h/sp and j+1 < w/sp # bottom right
 #							gr[sp*(w*(i+1)+j+1)+y*w+x] += (err[y*sp+x] * 1/16)
 
-	for i in [0...rowLength]
+	for i in [0..rowLength]
 
 		row = ''
 
-		for j in [0...rowLength*aspectRatio*aspect]
+		for j in [0..rowLength*aspectRatio*aspect]
 
 			# append best character to row
-			console.log _.min(bestChoice[i][j],(w) -> w.shapeErr).character
+			$('#output_ascii').append _.min(bestChoice[i][j],(w) -> w.shapeErr).character
 
-		#append row to output ASCII
-		text += escapeHtml(row) + '<br />'
+		$('#output_ascii').append '<br />'
 
-	$('#output_ascii').html(text)
 
 greyscale = (canvas) ->
 	greyscaleMethod = $('#bw').val()
