@@ -1,9 +1,11 @@
 aspect = 0
 char = {}
 subpixels = 1
+ultimateMode = true
+charsetCount = 0
 
 drawCharacterSet = ->
-
+	charsetCount = 0
 	fontFamily = $('#font_family').val()
 	fontSize = $('#font_size').val()
 	subpixels = $('#subpixels').val()
@@ -20,19 +22,30 @@ drawCharacterSet = ->
 	aspect = (char.width / fontSize) / $('#line_height').val()
 	lines = $('#char_set').val()
 	window.weights = []
+
+	# count characters
+
 	for i in [0...lines.length]
-		chars.fillText lines[i], 0, char.height*(i+1)
 		for j in [0...lines[i].length]
-			for y in [0...subpixels]
-				for x in [0...subpixels]				##bugs here!!!
-					imgData = chars.getImageData(\
-						char.width * (j + y / subpixels), \
-						char.height * (i + y / subpixels), \
-						char.width / subpixels, char.height / subpixels)
-					weight = 0 # subpixel weight
-					for p in [3...imgData.data.length] by 4
-						weight += imgData.data[p]
-					window.weights.push {darkness:weight,character:lines[i][j],y:y,y:y}
+			charsetCount++
+
+	console.log charsetCount
+
+	for s in [1..subpixels]
+		sp = s
+		for i in [0...lines.length]
+			chars.fillText lines[i], 0, char.height*(i+1)
+			for j in [0...lines[i].length]
+				for y in [0...sp]
+					for x in [0...sp]				##bugs here!!!
+						imgData = chars.getImageData(\
+							char.width * (j + x / sp), \
+							char.height * (i + y / sp), \
+							char.width / sp, char.height / sp)
+						weight = 0 # subpixel weight
+						for p in [3...imgData.data.length] by 4
+							weight += imgData.data[p]
+						window.weights.push {darkness:weight,character:lines[i][j],sp:sp}
 
 	for i in [0...lines.length] by 1
 		for j in [0...lines[i].length]
@@ -48,7 +61,8 @@ drawCharacterSet = ->
 	maxWeight = _.max(window.weights,(w) -> w.darkness).darkness
 	minWeight = _.min(window.weights,(w) -> w.darkness).darkness
 	for w in window.weights
-		w.brightness = 255 - (255*(w.darkness-minWeight))/(maxWeight-minWeight)
+		w.brightness = Math.round(255 - (255*(w.darkness-minWeight))/(maxWeight-minWeight))
+		console.log('weights')
 
 entityMap =
 	"&": "&amp;"
@@ -62,57 +76,66 @@ escapeHtml = (string) ->
 	return String(string).replace(/[&<>"'\/]/g, (s) -> return entityMap[s])
 
 imgToText = ->
-	source = document.getElementById("adjust_image")
-	cvs = source.getContext('2d')
+
+	# get the settings right
+
 	ditherFine = document.getElementById('dither_fine').checked
 	ditherWide = document.getElementById('dither_wide').checked
-	gr = greyscale(source) # array of pixel values
 	fontFamily = $('#font_family').val()
 	fontSize = $('#font_size').val()
 	$('#output_ascii').css('font-family',fontFamily)\
 		.css('font-size',fontSize+'px')\
 		.css('line-height',fontSize*$('#line_height').val()+'px')
 	text = ''
-	[h,w] = [source.height,source.width]
-	sp = subpixels
-	autoSp = true
-	for i in [0...h/sp] # loop through 'character grid' rows
-		row = ''
-		for j in [0...w/sp] # loop through 'character grid' cols
-			compare = []
 
-			# loop through character weights, subpixels
-			for ch in [0...window.weights.length] by sp*sp
-				grD = [] # character pixel values (for dithering)
-				for y in [0...sp] # subpixel y
-					for x in [0...sp] # subpixel x
-						grD.push(gr[i*w*sp + j*sp + y + x*w])
-				for y in [0...sp] # subpixel y
-					for x in [0...sp] # subpixel x
-						b = grD[y*sp+x]
-						c = window.weights[ch+y*sp+x]
-						thisChar = _.find(compare, (n) ->
-							return n.character is c.character
-						)
-						if thisChar is undefined
-							compare.push({character:c.character,err:[]})
+	source = []
+
+	for s in [1..subpixels]
+
+		# get the images and attributes
+
+		source[s] = document.getElementById "adjust_image_"+s
+		cvs = source.getContext('2d')
+		[h,w] = [source.height,source.width]
+
+		for i in [0...h/s] # loop through 'character grid' rows
+			row = ''
+			for j in [0...w/s] # loop through 'character grid' cols
+				compare = []
+				
+				# loop through character weights, subpixels
+				for ch in [0...subWeights.length] by sp*sp
+					grD = [] # character pixel values (for dithering)
+					for y in [0...sp] # subpixel y
+						for x in [0...sp] # subpixel x
+							grD.push(gr[i*w*sp + j*sp + y + x*w])
+					for y in [0...sp] # subpixel y
+						for x in [0...sp] # subpixel x
+							b = grD[y*sp+x]
+							c = window.weights[ch+y*sp+x]
 							thisChar = _.find(compare, (n) ->
-								return n.character is c.character
+								return n.character is c.character and n.sp is sp
 							)
-						err = c.brightness - b
-						thisChar.err.push err
+							if thisChar is undefined
+								compare.push({character:c.character,err:[],sp:sp})
+								thisChar = _.find(compare, (n) ->
+									return n.character is c.character
+								)
+							err = c.brightness - b
+							thisChar.err[sp].push err
 
-						# subpixel dithering
-						# grD[y*sp+x] = c.brightness
-						if ditherFine
-							if y+1 < sp
-								grD[y*sp+x+1] += (err * 7/16)
-							if x+1 < sp and y-1 > 0
-								grD[(y+1)*sp + x-1] += (err * 3/16)
-							if x+1 < sp
-								grD[(y+1)*sp + x] += (err * 5/16)
-							if x+1 < sp and y+1 < sp
-								grD[(y+1)*sp + j+1] += (err * 1/16)
+
+							# subpixel dithering
+							# grD[y*sp+x] = c.brightness
+							if ditherFine
+								if y+1 < sp
+									grD[y*sp+x+1] += (err * 7/16)
+								if x+1 < sp and y-1 > 0
+									grD[(y+1)*sp + x-1] += (err * 3/16)
+								if x+1 < sp
+									grD[(y+1)*sp + x] += (err * 5/16)
+								if x+1 < sp and y+1 < sp
+									grD[(y+1)*sp + j+1] += (err * 1/16)
 
 			# now pick the closest shape based on total error summation
 			for c in compare
@@ -124,19 +147,19 @@ imgToText = ->
 			bestChoice = _.min(compare,(w) -> w.shapeErr)
 
 			# don't forget to dither again
-			if ditherWide
-				err = bestChoice.err # microdither! :)
-				for y in [0...sp]
-					for x in [0...sp]
-						#gr[i*w*sp + j*sp + y + x*w]
-						if j+1 < w/sp # right side
-							gr[sp*(i*w+j+1)+y*w+x] += (err[y*sp+x] * 7/16)
-						if i+1 < h/sp and j-1 > 0 # left bottom
-							gr[sp*(w*(i+1)+j-1)+y*w+x] += (err[y*sp+x] * 3/16)
-						if i+1 < h/sp # bottom
-							gr[sp*(w*(i+1)+j)+y*w+x] += (err[y*sp+x] * 5/16)
-						if i+1 < h/sp and j+1 < w/sp # bottom right
-							gr[sp*(w*(i+1)+j+1)+y*w+x] += (err[y*sp+x] * 1/16)
+#			if ditherWide
+#				err = bestChoice.err # microdither! :)
+#				for y in [0...sp]
+#					for x in [0...sp]
+#						#gr[i*w*sp + j*sp + y + x*w]
+#						if j+1 < w/sp # right side
+#							gr[sp*(i*w+j+1)+y*w+x] += (err[y*sp+x] * 7/16)
+#						if i+1 < h/sp and j-1 > 0 # left bottom
+#							gr[sp*(w*(i+1)+j-1)+y*w+x] += (err[y*sp+x] * 3/16)
+#						if i+1 < h/sp # bottom
+#							gr[sp*(w*(i+1)+j)+y*w+x] += (err[y*sp+x] * 5/16)
+#						if i+1 < h/sp and j+1 < w/sp # bottom right
+#							gr[sp*(w*(i+1)+j+1)+y*w+x] += (err[y*sp+x] * 1/16)
 
 			# append best character to row
 			row += bestChoice.character
@@ -175,17 +198,22 @@ greyscale = (canvas) ->
 	return greyArray
 
 render = (src) ->
-	image = new Image();
-	image.onload = ->
-		rowLength = $('#row_length').val()
-		canvas = document.getElementById("adjust_image")
-		cty = canvas.getContext("2d")
-		aspectRatio = image.height/image.width
-		canvas.width = rowLength * subpixels
-		canvas.height = rowLength*aspectRatio*aspect * subpixels
-		cty.drawImage(image, 0, 0, canvas.width, canvas.height)
-		imgToText()
-	image.src = src
+	$('#image').html ''
+	for s in [1..subpixels]
+		imagesHtml = '<canvas id="adjust_image_'+s+'" width="1" height="1" style="display:none"></canvas>'
+		$('#image').append imagesHtml
+		image = new Image()
+		image.onLoad = ->
+			rowLength = $('#row_length').val()
+			canvas = $('#adjust_image_'+s)
+			ctx = canvas.getContext("2d")
+			aspectRatio = image.height/image.width
+			canvas.width = rowLength * subpixels
+			canvas.height = rowLength*aspectRatio*aspect * subpixels
+			ctx.drawImage(image, 0, 0, canvas.width, canvas.height)
+			if s is subpixels
+				imgToText()
+		image.src = src
 
 theImage = ''
 
@@ -218,25 +246,30 @@ $('document').ready ->
 	$('#output_ascii').draggable()
 
 $('#font_family').change ->
+	fontFamily = $('this').val()
 	drawCharacterSet()
 	if theImage != ''
 		render(theImage)
 
 $('#char_set').change ->
+	lines = $('this').val()
 	drawCharacterSet()
 	if theImage != ''
 		render(theImage)
 
 $('#font_size').change ->
+	fontSize = $('this').val()
 	drawCharacterSet()
 	if theImage != ''
 		render(theImage)
 
 $('#row_length').change ->
+	rowLength = $('this').val()
 	if theImage != ''
 		render(theImage)
 
 $('#subpixels').change ->
+	subpixels = $('this').val()
 	drawCharacterSet()
 	if theImage != ''
 		render(theImage)
@@ -276,8 +309,13 @@ $('#dither_wide').change ->
 	if theImage != ''
 		render(theImage)
 
+$('#ultimate_mode').change ->
+	drawCharacterSet()
+	if theImage != ''
+		render(theImage)
+
 $('#line_height').change ->
-	aspect = (char.width / (char.height / 1.5)) / $(this).val()
+	aspect = (char.width / (char.height / 1.5)) / $($('this')).val()
 	if theImage != ''
 		render(theImage)
 

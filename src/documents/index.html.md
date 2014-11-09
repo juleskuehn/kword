@@ -16,9 +16,9 @@ layout: "normal"
 		<div id="from_font">
 			<form>
 				Font: <input type="text" id="font_family" value="Luxi Mono"></input><br />
-				Size: <input type="text" id="font_size" value="10"></input><br />
+				Size: <input type="text" id="font_size" value="15"></input><br />
 				Character Set (include space if desired): <input type="textarea" id="char_set" value="±1234567890-=°#&quot;/$%*&amp;'()_+qwfpgjluy;[]QWFPGJLUY:arstdhneioARSTDHNEIOzxcvbkm,.ZXCVBKM<>/`ˆ§?éç "></input><br />			
-				<input type="checkbox" id="for_print" checked></input> For printing
+				<input type="checkbox" id="for_print"></input> For printing
 			</form>
 			<canvas id="character_set" width="10000" height="10000" style="display:none"></canvas>
 		</div>
@@ -39,9 +39,6 @@ layout: "normal"
 	</section>
 
 	<section id="image">
-
-		<canvas id="adjust_image" width="250" height="100" style="display:none"></canvas>
-
 	</section>
 
 	<form>
@@ -64,13 +61,15 @@ layout: "normal"
 		<input type="range" id="customG" min="0" max="3" value="1" step="0.01">Green<br />
 		<input type="range" id="customB" min="0" max="3" value="1" step="0.01">Blue<br />
 
-		<input type="range" id="row_length" min="10" max="200" value="78" step="1">Line Length<br />
+		<input type="range" id="row_length" min="10" max="200" value="108" step="1">Line Length<br />
 		<input type="range" id="line_height" min="0" max="2" value="0.6" step="0.01">Line Spacing<br />
 		<input type="range" id="subpixels" min="1" max="7" value="1" step="1">Subpixels<br />
 
 		<input type="checkbox" id="dither_fine" checked></input> Dither (Fine)<br />
 
 		<input type="checkbox" id="dither_wide" checked></input> Dither (Wide)<br />
+
+		<input type="checkbox" id="ultimate_mode" checked></input> Ultimate Mode<br />
 
 
 	</form>
