@@ -90,6 +90,8 @@ imgToText = ->
 		.css('line-height',fontSize*$('#line_height').val()+'px')
 	text = ''
 
+	bestChoice = []
+
 	# compare various character supersamples to find best match
 	for s in [1..subpixels]
 
@@ -101,11 +103,14 @@ imgToText = ->
 
 		for i in [0...h/s] # loop through 'character grid' rows
 
+			bestChoice.push []
+
 			for j in [0...w/s] # loop through 'character grid' cols
 
+				bestChoice[i].push []
+
 				compare = []
-				
-				# each character
+
 				for ch in [0...grD.length] by s*s
 
 					for y in [0...s] # subpixel y
@@ -139,13 +144,15 @@ imgToText = ->
 								if x+1 < s and y+1 < s
 									grD[(y+1)*s + j+1] += (err * 1/16)
 
-				# now pick the closest shape based on total error summation
+				# now add up the error in the subpixels
 				for c in compare
 					c.shapeErr = 0
 					c.colorErr = 0
 					for err in c.err
 						c.shapeErr += Math.abs(err)
 						c.colorErr += err
+
+				# and pick the closest shape based on total error summation
 				bestChoice[i][j].push _.min(compare,(w) -> w.shapeErr)
 
 			# don't forget to dither again
@@ -164,6 +171,8 @@ imgToText = ->
 #							gr[sp*(w*(i+1)+j+1)+y*w+x] += (err[y*sp+x] * 1/16)
 
 	for i in [0..rowLength]
+
+		row = ''
 
 		for j in rowLength*aspectRatio*aspect
 
