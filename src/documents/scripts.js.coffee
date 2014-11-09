@@ -1,8 +1,10 @@
 aspect = 0
+aspectRatio = 0
 char = {}
 subpixels = 1
 ultimateMode = true
 charsetCount = 0
+rowLength = 0
 
 drawCharacterSet = ->
 	charsetCount = 0
@@ -76,11 +78,9 @@ escapeHtml = (string) ->
 	return String(string).replace(/[&<>"'\/]/g, (s) -> return entityMap[s])
 
 imgToText = ->
-
 	console.log 'imgToText'
 
 	# get the settings right
-
 	ditherFine = document.getElementById('dither_fine').checked
 	ditherWide = document.getElementById('dither_wide').checked
 	fontFamily = $('#font_family').val()
@@ -90,60 +90,63 @@ imgToText = ->
 		.css('line-height',fontSize*$('#line_height').val()+'px')
 	text = ''
 
+	# compare various character supersamples to find best match
 	for s in [1..subpixels]
 
 		# get the images and attributes
 		source = document.getElementById('adjust_image_'+s)
 		cvs = source.getContext('2d')
 		[h,w] = [source.height,source.width]
+		grD = greyscale(source) # array of pixel values
 
 		for i in [0...h/s] # loop through 'character grid' rows
-			row = ''
+
 			for j in [0...w/s] # loop through 'character grid' cols
+
 				compare = []
 				
-				# loop through character weights, subpixels
-				for ch in [0...subWeights.length] by sp*sp
-					grD = [] # character pixel values (for dithering)
-					for y in [0...sp] # subpixel y
-						for x in [0...sp] # subpixel x
-							grD.push(gr[i*w*sp + j*sp + y + x*w])
-					for y in [0...sp] # subpixel y
-						for x in [0...sp] # subpixel x
-							b = grD[y*sp+x]
-							c = window.weights[ch+y*sp+x]
+				# each character
+				for ch in [0...grD.length] by s*s
+
+					for y in [0...s] # subpixel y
+
+						for x in [0...s] # subpixel x
+
+							# each subpixel
+							b = grD[y*s+x]
+							c = window.weights[ch+y*s+x]
 							thisChar = _.find(compare, (n) ->
-								return n.character is c.character and n.sp is sp
+								return n.character is c.character and n.sp is s
 							)
 							if thisChar is undefined
-								compare.push({character:c.character,err:[],sp:sp})
+								compare.push({character:c.character,err:[],sp:s})
 								thisChar = _.find(compare, (n) ->
 									return n.character is c.character
 								)
 							err = c.brightness - b
-							thisChar.err[sp].push err
+							thisChar.err.push err
 
 
 							# subpixel dithering
-							# grD[y*sp+x] = c.brightness
+							# grD[y*s+x] = c.brightness
 							if ditherFine
-								if y+1 < sp
-									grD[y*sp+x+1] += (err * 7/16)
-								if x+1 < sp and y-1 > 0
-									grD[(y+1)*sp + x-1] += (err * 3/16)
-								if x+1 < sp
-									grD[(y+1)*sp + x] += (err * 5/16)
-								if x+1 < sp and y+1 < sp
-									grD[(y+1)*sp + j+1] += (err * 1/16)
+								if y+1 < s
+									grD[y*s+x+1] += (err * 7/16)
+								if x+1 < s and y-1 > 0
+									grD[(y+1)*s + x-1] += (err * 3/16)
+								if x+1 < s
+									grD[(y+1)*s + x] += (err * 5/16)
+								if x+1 < s and y+1 < s
+									grD[(y+1)*s + j+1] += (err * 1/16)
 
-			# now pick the closest shape based on total error summation
-			for c in compare
-				c.shapeErr = 0
-				c.colorErr = 0
-				for err in c.err
-					c.shapeErr += Math.abs(err)
-					c.colorErr += err
-			bestChoice = _.min(compare,(w) -> w.shapeErr)
+				# now pick the closest shape based on total error summation
+				for c in compare
+					c.shapeErr = 0
+					c.colorErr = 0
+					for err in c.err
+						c.shapeErr += Math.abs(err)
+						c.colorErr += err
+				bestChoice[i][j].push _.min(compare,(w) -> w.shapeErr)
 
 			# don't forget to dither again
 #			if ditherWide
@@ -160,11 +163,16 @@ imgToText = ->
 #						if i+1 < h/sp and j+1 < w/sp # bottom right
 #							gr[sp*(w*(i+1)+j+1)+y*w+x] += (err[y*sp+x] * 1/16)
 
+	for i in [0..rowLength]
+
+		for j in rowLength*aspectRatio*aspect
+
 			# append best character to row
-			row += bestChoice.character
+			row += _.min(bestChoice[i][j],(w) -> w.shapeErr).character
 
 		#append row to output ASCII
 		text += escapeHtml(row) + '<br />'
+
 	$('#output_ascii').html(text)
 
 greyscale = (canvas) ->
