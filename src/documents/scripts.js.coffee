@@ -34,20 +34,31 @@ drawCharacterSet = ->
 	console.log charsetCount
 
 	for s in [1..subpixels]
+
 		sp = s
+		window.weights.push []
+
 		for i in [0...lines.length]
+
 			chars.fillText lines[i], 0, char.height*(i+1)
+
 			for j in [0...lines[i].length]
+
 				for y in [0...sp]
-					for x in [0...sp]				##bugs here!!!
+
+					for x in [0...sp]				
+
 						imgData = chars.getImageData(\
 							char.width * (j + x / sp), \
 							char.height * (i + y / sp), \
 							char.width / sp, char.height / sp)
+
 						weight = 0 # subpixel weight
+
 						for p in [3...imgData.data.length] by 4
 							weight += imgData.data[p]
-						window.weights.push {darkness:weight,character:lines[i][j],sp:sp}
+
+						window.weights[sp-1].push {darkness:weight,character:lines[i][j]}
 
 	for i in [0...lines.length] by 1
 		for j in [0...lines[i].length]
@@ -95,6 +106,8 @@ imgToText = ->
 	# compare various character supersamples to find best match
 	for s in [1..subpixels]
 
+		console.log 'subpixel_pass:'+s
+
 		# get the images and attributes
 		source = document.getElementById('adjust_image_'+s)
 		cvs = source.getContext('2d')
@@ -119,7 +132,11 @@ imgToText = ->
 
 							# each subpixel
 							b = grD[y*s+x]
-							c = window.weights[ch+y*s+x]
+
+							c = window.weights[s-1][ch+y*s+x]
+
+							console.log c
+
 							thisChar = _.find(compare, (n) ->
 								return n.character is c.character and n.sp is s
 							)
@@ -130,19 +147,6 @@ imgToText = ->
 								)
 							err = c.brightness - b
 							thisChar.err.push err
-
-
-							# subpixel dithering
-							# grD[y*s+x] = c.brightness
-							if ditherFine
-								if y+1 < s
-									grD[y*s+x+1] += (err * 7/16)
-								if x+1 < s and y-1 > 0
-									grD[(y+1)*s + x-1] += (err * 3/16)
-								if x+1 < s
-									grD[(y+1)*s + x] += (err * 5/16)
-								if x+1 < s and y+1 < s
-									grD[(y+1)*s + j+1] += (err * 1/16)
 
 				# now add up the error in the subpixels
 				for c in compare
@@ -216,10 +220,10 @@ greyscale = (canvas) ->
 render = (src) ->
 	console.log 'render'
 	subpixels = $('#subpixels').val()
-	for s in [1..subpixels]
-		console.log 'subpixel='+s
-		image = new Image()
-		image.onload = ->
+	image = new Image()
+	image.onload = ->
+		for s in [1..subpixels]
+			console.log 'subpixel='+s
 			console.log 'img-onload'
 			rowLength = $('#row_length').val()
 			canvas = document.getElementById('adjust_image_'+s)
@@ -228,7 +232,10 @@ render = (src) ->
 			canvas.width = rowLength * subpixels
 			canvas.height = rowLength*aspectRatio*aspect * subpixels
 			ctx.drawImage(image, 0, 0, canvas.width, canvas.height)
-		image.src = src
+			if String(s) is String(subpixels)
+				imgToText()
+				console.log('lets go')
+	image.src = src
 
 theImage = ''
 
