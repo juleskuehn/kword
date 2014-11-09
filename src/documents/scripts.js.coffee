@@ -112,7 +112,7 @@ imgToText = ->
 		source = document.getElementById('adjust_image_'+s)
 		cvs = source.getContext('2d')
 		[h,w] = [source.height,source.width]
-		grD = greyscale(source) # array of pixel values
+		gr = greyscale(source) # array of pixel values
 
 		for i in [0...h/s] # loop through 'character grid' rows
 
@@ -124,12 +124,15 @@ imgToText = ->
 
 				compare = []
 
-				for ch in [0...grD.length] by s*s
+				for ch in [0...window.weights[s-1].length] by s*s
+
+					grD = [] # character pixel values (for dithering)
+					for y in [0...sp] # subpixel y
+						for x in [0...sp] # subpixel x
+							grD.push(gr[i*w*sp + j*sp + y + x*w])
 
 					for y in [0...s] # subpixel y
-
 						for x in [0...s] # subpixel x
-
 							# each subpixel
 							b = grD[y*s+x]
 
