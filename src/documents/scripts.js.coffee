@@ -125,7 +125,7 @@ imgToText = ->
 		[h,w] = [source.height,source.width]
 		gr.push greyscale(source) # array of pixel values
 
-		for i in [0...h/s] # loop through 'character grid' rows
+		for i in [0...Math.floor(h/s)] # loop through 'character grid' rows
 
 			if String(s) is String(subpixels)
 				row = ''
@@ -133,7 +133,7 @@ imgToText = ->
 			if bestChoice.length <= i
 				bestChoice.push []
 
-			for j in [0...w/s] # loop through 'character grid' cols
+			for j in [0...Math.floor(w/s)] # loop through 'character grid' cols
 
 				compare = []
 
@@ -180,53 +180,16 @@ imgToText = ->
 				if String(s) is String(subpixels)
 
 					chosenCharacter = _.min(bestChoice[i][j],(w) -> w.shapeErr)
-					row += chosenCharacter.character
-					console.log 'i:'+i+',j:'+j+',char:'+chosenCharacter.character
-
-					# dither 'wide'
-					if ditherWide
-
-						h = bestChoice.length
-						w = bestChoice[0].length
-
-						for sp in [1..subpixels]
-
-							err = []
-
-							grD = [] # character pixel values (for dithering)
-							for y in [0...sp] # subpixel y
-								for x in [0...sp] # subpixel x
-									grD.push(gr[sp-1][i*w*sp + j*sp + y + x*w])
-
-							for y in [0...sp] # subpixel y
-								for x in [0...sp] # subpixel x
-									# each subpixel
-									b = grD[y*sp+x]
-									c = _.find(window.weights[sp-1], (n) ->
-										return n.character is chosenCharacter.character
-									)	
-
-									err.push c.brightness - b
-
-									#gr[i*w*sp + j*sp + y + x*w]
-									if j+1 < w/sp # right side
-										gr[sp-1][sp*(i*w+j+1)+y*w+x] += (err[y*w+x] * 7/16)
-									if i+1 < h/sp and j-1 > 0 # left bottom
-										gr[sp-1][sp*(w*(i+1)+j-1)+y*w+x] += (err[y*w+x] * 3/16)
-									if i+1 < h/sp # bottom
-										gr[sp-1][sp*(w*(i+1)+j)+y*w+x] += (err[y*w+x] * 5/16)
-									if i+1 < h/sp and j+1 < w/sp # bottom right
-										gr[sp-1][sp*(w*(i+1)+j+1)+y*w+x] += (err[y*w+x] * 1/16)
-
+					if chosenCharacter.character is undefined
+						console.log(chosenCharacter)
+					else
+						row += chosenCharacter.character
 
 			# special action on the last run through each row
 			if String(s) is String(subpixels)
 				text += escapeHtml(row) + '<br>'
 		
-		#special action on 
-		if String(s) is String(subpixels)
-			$('#output_ascii').html text
-
+	$('#output_ascii').html text
 	console.log bestChoice
 
 # tested and working
