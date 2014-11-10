@@ -1,3 +1,7 @@
+								
+# kword: image > ascii converter
+# mail@mikekuehn.ca
+
 aspect = 0
 aspectRatio = 0
 char = {}
@@ -7,6 +11,8 @@ charsetCount = 0
 rowLength = 0
 
 drawCharacterSet = ->
+	# tested, working
+
 	charsetCount = 0
 	fontFamily = $('#font_family').val()
 	fontSize = $('#font_size').val()
@@ -15,7 +21,7 @@ drawCharacterSet = ->
 	chars_canvas.width = chars_canvas.width
 	chars = chars_canvas.getContext('2d')
 	if document.getElementById('for_print').checked
-		fontSize = 72
+		fontSize = 21
 	chars.font = fontSize + 'px ' + fontFamily
 	chars.textBaseline = 'bottom'
 	char =
@@ -26,7 +32,6 @@ drawCharacterSet = ->
 	window.weights = []
 
 	# count characters
-
 	for i in [0...lines.length]
 		for j in [0...lines[i].length]
 			charsetCount++
@@ -84,11 +89,13 @@ entityMap =
 	">": "&gt;"
 	'"': '&quot;'
 	"'": '&#39;'
-	"/": '&#y2F;'
+	"/": '&#x2F;'
 
 escapeHtml = (string) ->
 	return String(string).replace(/[&<>"'\/]/g, (s) -> return entityMap[s])
 
+
+# BUGGY: number rounding problems?
 imgToText = ->
 	console.log 'imgToText'
 
@@ -101,10 +108,14 @@ imgToText = ->
 		.css('font-size',fontSize+'px')\
 		.css('line-height',fontSize*$('#line_height').val()+'px')
 	bestChoice = []
+	gr = []
 	$('#output_ascii').html ''
 
 	# compare various character supersamples to find best match
 	for s in [1..subpixels]
+
+		if String(s) is String(subpixels)
+			text = ''
 
 		console.log 'subpixel_pass:'+s
 
@@ -112,24 +123,29 @@ imgToText = ->
 		source = document.getElementById('adjust_image_'+s)
 		cvs = source.getContext('2d')
 		[h,w] = [source.height,source.width]
-		gr = greyscale(source) # array of pixel values
+		gr.push greyscale(source) # array of pixel values
 
 		for i in [0...h/s] # loop through 'character grid' rows
 
-			bestChoice.push([])
+			if String(s) is String(subpixels)
+				row = ''
+
+			if bestChoice.length <= i
+				bestChoice.push []
 
 			for j in [0...w/s] # loop through 'character grid' cols
 
-				bestChoice[i].push([])
-
 				compare = []
+
+				if bestChoice[i].length <= j
+					bestChoice[i].push []
 
 				for ch in [0...window.weights[s-1].length] by s*s
 
 					grD = [] # character pixel values (for dithering)
 					for y in [0...s] # subpixel y
 						for x in [0...s] # subpixel x
-							grD.push(gr[i*w*s + j*s + y + x*w])
+							grD.push(gr[s-1][i*w*s + j*s + y + x*w])
 
 					for y in [0...s] # subpixel y
 						for x in [0...s] # subpixel x
@@ -149,43 +165,71 @@ imgToText = ->
 							err = c.brightness - b
 							thisChar.err.push err
 
-				# now add up the error in the subpixels
-				for c in compare
-					c.shapeErr = 0
-					c.colorErr = 0
-					for err in c.err
-						c.shapeErr += Math.abs(err)
-						c.colorErr += err
+					# now add up the error in the subpixels
+					for c in compare
+						c.shapeErr = 0
+						c.colorErr = 0
+						for err in c.err
+							c.shapeErr += Math.abs(err)/(c.sp*c.sp)
+							c.colorErr += err/(c.sp*c.sp)
+						c.totalErr = c.shapeErr*0.5 + Math.abs(c.colorErr)*0.5
 
 				bestChoice[i][j].push _.min(compare,(w) -> w.shapeErr)
 
-			# don't forget to dither again
-#			if ditherWide
-#				err = bestChoice.err # microdither! :)
-#				for y in [0...sp]
-#					for x in [0...sp]
-#						#gr[i*w*sp + j*sp + y + x*w]
-#						if j+1 < w/sp # right side
-#							gr[sp*(i*w+j+1)+y*w+x] += (err[y*sp+x] * 7/16)
-#						if i+1 < h/sp and j-1 > 0 # left bottom
-#							gr[sp*(w*(i+1)+j-1)+y*w+x] += (err[y*sp+x] * 3/16)
-#						if i+1 < h/sp # bottom
-#							gr[sp*(w*(i+1)+j)+y*w+x] += (err[y*sp+x] * 5/16)
-#						if i+1 < h/sp and j+1 < w/sp # bottom right
-#							gr[sp*(w*(i+1)+j+1)+y*w+x] += (err[y*sp+x] * 1/16)
+				# special action on the last run through each character
+				if String(s) is String(subpixels)
 
-	for i in [0..rowLength]
+					chosenCharacter = _.min(bestChoice[i][j],(w) -> w.shapeErr)
+					row += chosenCharacter.character
+					console.log 'i:'+i+',j:'+j+',char:'+chosenCharacter.character
 
-		row = ''
+					# dither 'wide'
+					if ditherWide
 
-		for j in [0..rowLength*aspectRatio*aspect]
+						h = bestChoice.length
+						w = bestChoice[0].length
 
-			# append best character to row
-			$('#output_ascii').append _.min(bestChoice[i][j],(w) -> w.shapeErr).character
+						for sp in [1..subpixels]
 
-		$('#output_ascii').append '<br />'
+							err = []
+
+							grD = [] # character pixel values (for dithering)
+							for y in [0...sp] # subpixel y
+								for x in [0...sp] # subpixel x
+									grD.push(gr[sp-1][i*w*sp + j*sp + y + x*w])
+
+							for y in [0...sp] # subpixel y
+								for x in [0...sp] # subpixel x
+									# each subpixel
+									b = grD[y*sp+x]
+									c = _.find(window.weights[sp-1], (n) ->
+										return n.character is chosenCharacter.character
+									)	
+
+									err.push c.brightness - b
+
+									#gr[i*w*sp + j*sp + y + x*w]
+									if j+1 < w/sp # right side
+										gr[sp-1][sp*(i*w+j+1)+y*w+x] += (err[y*w+x] * 7/16)
+									if i+1 < h/sp and j-1 > 0 # left bottom
+										gr[sp-1][sp*(w*(i+1)+j-1)+y*w+x] += (err[y*w+x] * 3/16)
+									if i+1 < h/sp # bottom
+										gr[sp-1][sp*(w*(i+1)+j)+y*w+x] += (err[y*w+x] * 5/16)
+									if i+1 < h/sp and j+1 < w/sp # bottom right
+										gr[sp-1][sp*(w*(i+1)+j+1)+y*w+x] += (err[y*w+x] * 1/16)
 
 
+			# special action on the last run through each row
+			if String(s) is String(subpixels)
+				text += escapeHtml(row) + '<br>'
+		
+		#special action on 
+		if String(s) is String(subpixels)
+			$('#output_ascii').html text
+
+	console.log bestChoice
+
+# tested and working
 greyscale = (canvas) ->
 	greyscaleMethod = $('#bw').val()
 	customR = $('#customR').val()
@@ -215,6 +259,7 @@ greyscale = (canvas) ->
 		greyArray.push(l)
 	return greyArray
 
+# tested and working
 render = (src) ->
 	console.log 'render'
 	subpixels = $('#subpixels').val()
@@ -227,8 +272,8 @@ render = (src) ->
 			canvas = document.getElementById('adjust_image_'+s)
 			ctx = canvas.getContext("2d")
 			aspectRatio = image.height/image.width
-			canvas.width = rowLength * subpixels
-			canvas.height = rowLength*aspectRatio*aspect * subpixels
+			canvas.width = rowLength * s
+			canvas.height = rowLength*aspectRatio*aspect * s
 			ctx.drawImage(image, 0, 0, canvas.width, canvas.height)
 			if String(s) is String(subpixels)
 				imgToText()
@@ -237,6 +282,7 @@ render = (src) ->
 
 theImage = ''
 
+#tested and working
 loadImage = (src) ->
 	# Prevent any non-image file type from being read.
 	if !src.type.match(/image.*/)
@@ -265,6 +311,8 @@ target.addEventListener("drop", (e) ->
 $('document').ready ->
 	drawCharacterSet()
 	$('#output_ascii').draggable()
+
+# Control listeners
 
 $('#font_family').change ->
 	fontFamily = $('this').val()
@@ -336,7 +384,7 @@ $('#ultimate_mode').change ->
 		render(theImage)
 
 $('#line_height').change ->
-	aspect = (char.width / (char.height / 1.5)) / $($('this')).val()
+	aspect = (char.width / (char.height / 1.5)) / this.value
 	if theImage != ''
 		render(theImage)
 
