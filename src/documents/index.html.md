@@ -16,9 +16,9 @@ layout: "normal"
 		<div id="from_font">
 			<form>
 				Font: <input type="text" id="font_family" value="Luxi Mono"></input><br />
-				Size: <input type="text" id="font_size" value="4.2"></input><br />
+				Size: <input type="text" id="font_size" value="5"></input><br />
 				Character Set (include space if desired): <input type="textarea" id="char_set" value="±1234567890-=°#&quot;/$%*&amp;'()_+qwfpgjluy;[]QWFPGJLUY:arstdhneioARSTDHNEIOzxcvbkm,.ZXCVBKM<>/`ˆ§?éç "></input><br />			
-				<input type="checkbox" id="for_print" checked></input> For printing
+				<input type="checkbox" id="for_print"></input> For printing
 			</form>
 			<canvas id="character_set" width="10000" height="10000" style="display:none"></canvas>
 		</div>

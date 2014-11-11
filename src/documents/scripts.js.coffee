@@ -95,7 +95,6 @@ escapeHtml = (string) ->
 	return String(string).replace(/[&<>"'\/]/g, (s) -> return entityMap[s])
 
 
-# BUGGY: number rounding problems?
 imgToText = ->
 	console.log 'imgToText'
 
@@ -171,10 +170,10 @@ imgToText = ->
 						c.colorErr = 0
 						for err in c.err
 							c.shapeErr += Math.abs(err)/(c.sp*c.sp)
-							c.colorErr += err/(c.sp*c.sp)
+							c.colorErr += err
 						c.totalErr = c.shapeErr*0.5 + Math.abs(c.colorErr)*0.5
 
-				bestChoice[i][j].push _.min(compare,(w) -> w.shapeErr)
+				bestChoice[i][j].push _.min(compare,(w) -> w.totalErr)
 
 				# special action on the last run through each character
 				if String(s) is String(subpixels)
