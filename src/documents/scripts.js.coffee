@@ -153,8 +153,7 @@ tests =
 
 		preview = document.getElementById('preview_result')
 		returns = helpers.resizePreview(this.testImage,preview)
-		newFont = returns[0]
-		charHeight = returns[1]
+		[newFont,charHeight] = [ returns[0],returns[1] ]
 
 		for i in [0...this.testImage.length]
 
