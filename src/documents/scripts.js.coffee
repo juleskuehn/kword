@@ -2,6 +2,7 @@
 # kword: image > ascii converter (version 0.2)
 # mail@mikekuehn.ca
 
+# test suite goes here
 tests =
 
 	testImage: [
@@ -135,29 +136,59 @@ tests =
 		'pppg6hkhXGAAA4U%5j±i?<=**""""""__-:-°-----:°::_"":°°::""*+<t7CU4Xh$OqggppppppppppppppppKmmmmmmmmmm'
 	]
 
+	# outputs plain text of generated image to <pre> for text selection
 	outputAscii: ->
 
 		outputAscii = ''
 
 		for row in this.testImage
-			outputAscii += escapeHtml(row)
+			outputAscii += helpers.escapeHtml(row)
 			outputAscii += '<br>'
 
 		$('#output_ascii').html outputAscii
 
+
+	# draws text (correct font / spacing) on <canvas> for accurate previewing
 	previewResult: ->
 
-		# set preview canvas size to fit window
+		preview = document.getElementById('preview_result')
+		returns = helpers.resizePreview(this.testImage,preview)
+		newFont = returns[0]
+		charHeight = returns[1]
+
+		for i in [0...this.testImage.length]
+
+			preview.getContext('2d').font = newFont
+			preview.getContext('2d').fillText(this.testImage[i], 0, charHeight*(i+1))
+
+
+
+
+
+# little functions stay here to keep things clean
+helpers = 
+
+	entityMap:
+		"&": "&amp;"
+		"<": "&lt;"
+		">": "&gt;"
+		'"': '&quot;'
+		"'": '&#39;'
+		"/": '&#x2F;'
+
+	escapeHtml: (string) ->
+		return String(string).replace(/[&<>"'\/]/g, (s) -> return helpers.entityMap[s])
+	
+	# set preview canvas size to fit window
+	resizePreview: (targetAscii,preview) ->
 
 		fontFamily = $('#font_family').val()
 		fontSize = 5
 		rowLength = $('#row_length').val()
 		lineHeight = $('#line_height').val()
-		preview = document.getElementById('preview_result')
 		preview.width = $(window).width() - 300
 		newFont = fontSize + 'px ' + fontFamily
 		preview.getContext('2d').font = newFont
-		preview.getContext('2d').textBaseline = 'bottom'
 
 		char =
 			width: preview.getContext('2d').measureText('.').width
@@ -174,31 +205,23 @@ tests =
 
 		# set preview canvas height
 
-		preview.height = this.testImage.length * char.height
+		preview.height = targetAscii.length * char.height
+		windowHeight = $(window).height()
 
-		if preview.height+40 > $(window).height()
-			charsPerCol = ($(window).height()-40) / char.height
-			fontSize = (charsPerCol/this.testImage.length) * fontSize
+		if preview.height+40 > windowHeight
+
+			charsPerCol = (windowHeight-40) / char.height
+			fontSize = (charsPerCol/targetAscii.length) * fontSize
 			char.height = fontSize * lineHeight
 			newFont = fontSize + 'px ' + fontFamily
-			preview.height = $(window).height()-40 
+			preview.height = windowHeight-40
 
-		for i in [0...this.testImage.length]
-			preview.getContext('2d').font = newFont
-			preview.getContext('2d').fillText(this.testImage[i], 0, char.height*(i+1))
+		return [newFont,char.height]
 
-escapeHtml = (string) ->
 
-	entityMap =
-		"&": "&amp;"
-		"<": "&lt;"
-		">": "&gt;"
-		'"': '&quot;'
-		"'": '&#39;'
-		"/": '&#x2F;'
 
-	return String(string).replace(/[&<>"'\/]/g, (s) -> return entityMap[s])
 
+# initialization
 $('document').ready ->
 
 	tests.outputAscii()

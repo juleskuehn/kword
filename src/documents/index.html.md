@@ -16,9 +16,7 @@ layout: "normal"
 			<div id="from_font">
 				<form>
 					Font: <input type="text" id="font_family" value="Luxi Mono"></input><br />
-					Size: <input type="text" id="font_size" value="5"></input><br />
 					Character Set (include space if desired): <input type="textarea" id="char_set" value="±1234567890-=°#&quot;/$%*&amp;'()_+qwfpgjluy;[]QWFPGJLUY:arstdhneioARSTDHNEIOzxcvbkm,.ZXCVBKM<>/`ˆ§?éç "></input><br />			
-					<input type="checkbox" id="for_print"></input> For printing
 				</form>
 				<canvas id="character_set" width="10000" height="10000" style="display:none"></canvas>
 			</div>
@@ -51,8 +49,6 @@ layout: "normal"
 			  <option value="blue">Blue</option>
 			</select><br />
 
-			<input type="checkbox" id="plain_text" checked></input> Plain text output
-
 			<input type="range" id="customR" min="0" max="3" value="1" step="0.01">Red<br />
 			<input type="range" id="customG" min="0" max="3" value="1" step="0.01">Green<br />
 			<input type="range" id="customB" min="0" max="3" value="1" step="0.01">Blue<br />
@@ -71,6 +67,12 @@ layout: "normal"
 		</form>
 
 	</div> <!-- end sidebar -->
+
+	<div id="preview_chooser">
+		<a id="choose_preview" href="#preview">Preview</a>
+		<a id="choose_text" href="#plaintext">Plain text</a>
+		<a id="choose_typing" href="#typing">For typing</a>
+	</div>
 
 	<div id="preview">
 		<canvas id="preview_result" width="500" height="500"></canvas>
