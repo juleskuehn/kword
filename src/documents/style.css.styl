@@ -17,16 +17,31 @@ body
 	position fixed
 	top 0
 	left 260px
+	height 25px
+	background #2a2a2a	
+	width 100%
+	color #ccc
+	z-index 100
+	
 	a
-		background whitesmoke
-		display block
-		color blue
-		float left
-		margin 5px
+		background #2a2a2a
+		display inline-block
+		padding 5px
+		margin 0 0 0 5px
 		height 15px
+		color #ccc
+		text-decoration none
+	
+		&.active
+			background gray
+			color #fff
+			text-shadow 1px 1px 0 #000
+			
 
 #preview
-	#preview_result
+	#preview_preview,
+	#preview_typing,
+	#preview_text
 		position absolute
 		background whitesmoke
 		box-shadow 2px 2px 10px #2a2a2a
@@ -34,14 +49,9 @@ body
 		top 30px
 		left 270px
 		outline solid 1px black
-	#output_ascii
-		position absolute
-		top 0
-		left 270px
-		padding 20px
-		margin-left 20px
-		background whitesmoke
+	#preview_typing,
+	#preview_text
+		margin 0
 		font-family monospace
 		color #222
 		display none
-		

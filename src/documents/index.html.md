@@ -69,14 +69,16 @@ layout: "normal"
 	</div> <!-- end sidebar -->
 
 	<div id="preview_chooser">
-		<a id="choose_preview" href="#preview">Preview</a>
+		Output select: 
+		<a id="choose_preview" href="#preview" class="active">Preview</a>
 		<a id="choose_text" href="#plaintext">Plain text</a>
-		<a id="choose_typing" href="#typing">For typing</a>
+<!--	<a id="choose_typing" href="#typing">For typing</a>		-->
 	</div>
 
 	<div id="preview">
-		<canvas id="preview_result" width="500" height="500"></canvas>
-		<pre id="output_ascii"></pre>
+		<canvas id="preview_preview" width="500" height="500"></canvas>
+		<pre id="preview_text"></pre>
+		<pre id="preview_typing"></pre>
 	</div>
 
 	<!-- end preview -->
