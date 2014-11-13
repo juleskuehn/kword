@@ -189,6 +189,7 @@ imgDo =
 		return greyArray
 
 	render: (src) ->
+
 		this.img.src = ''
 		helpers.getOptions()
 		preview = document.getElementById('preview_preview')
