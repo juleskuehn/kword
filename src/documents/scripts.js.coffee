@@ -154,6 +154,82 @@ views =
 		$('#preview :visible').hide()
 		$('#preview_'+this.previewMode).show()
 
+# draw and weigh the character set
+charDo = 
+
+	draw = ->
+	
+		charsetCount = 0
+		fontFamily = $('#font_family').val()
+		fontSize = $('#font_size').val()
+		subpixels = $('#subpixels').val()
+		chars_canvas = document.getElementById('character_set')
+		chars_canvas.width = chars_canvas.width
+		chars = chars_canvas.getContext('2d')
+		if document.getElementById('for_print').checked
+			fontSize = 21
+		chars.font = fontSize + 'px ' + fontFamily
+		chars.textBaseline = 'bottom'
+		char =
+			width: chars.measureText('.').width
+			height: fontSize * 1.5
+		aspect = (char.width / fontSize) / $('#line_height').val()
+		lines = $('#char_set').val()
+		window.weights = []
+
+		# count characters
+		for i in [0...lines.length]
+			for j in [0...lines[i].length]
+				charsetCount++
+
+		console.log charsetCount
+
+		for s in [1..subpixels]
+
+			sp = s
+			window.weights.push []
+
+			for i in [0...lines.length]
+
+				chars.fillText lines[i], 0, char.height*(i+1)
+
+				for j in [0...lines[i].length]
+
+					for y in [0...sp]
+
+						for x in [0...sp]				
+
+							imgData = chars.getImageData(\
+								char.width * (j + x / sp), \
+								char.height * (i + y / sp), \
+								char.width / sp, char.height / sp)
+
+							weight = 0 # subpixel weight
+
+							for p in [3...imgData.data.length] by 4
+								weight += imgData.data[p]
+
+							window.weights[sp-1].push {darkness:weight,character:lines[i][j]}
+
+		for i in [0...lines.length] by 1
+			for j in [0...lines[i].length]
+				chars.strokeStyle = '#ffff00'
+				chars.beginPath()
+				chars.moveTo(char.width * j, char.height * i)
+				chars.lineTo(char.width * (j+1), char.height * i)
+				chars.lineTo(char.width * (j+1), char.height * (i+1) )
+				chars.lineTo(char.width * (j), char.height * (i+1) )
+				chars.lineTo(char.width * j, char.height * i)
+				chars.stroke() 
+		
+		for s in [1..subpixels]
+			maxWeight = _.max(window.weights[s-1],(w) -> w.darkness).darkness
+			minWeight = _.min(window.weights[s-1],(w) -> w.darkness).darkness
+		for s in [1..subpixels]
+			for w in window.weights[s-1]
+				w.brightness = Math.round(255 - (255*(w.darkness-minWeight))/(maxWeight-minWeight))
+
+
 # image manipulation options and methods
 imgDo =
 

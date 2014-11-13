@@ -72,6 +72,7 @@ layout: "normal"
 		Output select: 
 		<a id="choose_preview" href="#preview" class="active">Preview</a>
 		<a id="choose_text" href="#plaintext">Plain text</a>
+		<a id="choose_charset" href="#charset">Character set</a>
 <!--	<a id="choose_typing" href="#typing">For typing</a>		-->
 	</div>
 
@@ -79,6 +80,7 @@ layout: "normal"
 		<canvas id="preview_preview" width="500" height="500"></canvas>
 		<pre id="preview_text"></pre>
 		<pre id="preview_typing"></pre>
+		<canvas id="preview_charset" width="500" height="500"></canvas>
 	</div>
 
 	<!-- end preview -->
