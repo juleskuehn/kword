@@ -173,11 +173,11 @@ charDo =
 		chars_canvas.width = char.width
 
 		for i in [0...imgDo.charset.length]
-			chars.textBaseline = 'bottom' 
+			chars.textBaseline = 'middle' 
 			chars.font = fontSize + 'px ' + imgDo.fontFamily
-			chars.fillText imgDo.charset[i], 0, char.height*(i+1)*padding
-			weightStart = fontSize*i + charDo.customStart*fontSize
-			weightEnd = fontSize*i + fontSize*charDo.customEnd
+			chars.fillText imgDo.charset[i], 0, char.height*padding*(i+0.4) 
+			weightStart = char.height*i*padding+charDo.customStart*fontSize
+			weightEnd = char.height*i*padding+charDo.customEnd*fontSize
 			chars.strokeStyle = '#00ff00'
 			chars.beginPath()
 			chars.moveTo(0, weightStart)
