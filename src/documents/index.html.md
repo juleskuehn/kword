@@ -15,8 +15,10 @@ layout: "normal"
 
 			<div id="from_font">
 				<form>
-					Font: <input type="text" id="font_family" value="Luxi Mono"></input><br />
-					Character Set (include space if desired): <input type="textarea" id="char_set" value="±1234567890-=°#&quot;/$%*&amp;'()_+qwfpgjluy;[]QWFPGJLUY:arstdhneioARSTDHNEIOzxcvbkm,.ZXCVBKM<>/`ˆ§?éç "></input><br />			
+					Font:<br>
+					<input type="text" id="font_family" value="Luxi Mono"></input><br />
+					Character Set (include space if desired):<br>
+					<input type="textarea" id="char_set" value="±1234567890-=°#&quot;/$%*&amp;'()_+qwfpgjluy;[]QWFPGJLUY:arstdhneioARSTDHNEIOzxcvbkm,.ZXCVBKM<>/`ˆ§?éç "></input><br />			
 				</form>
 				<canvas id="character_set" width="10000" height="10000" style="display:none"></canvas>
 			</div>
@@ -38,7 +40,7 @@ layout: "normal"
 
 		<form>
 
-			Greyscale conversion: 
+			Greyscale conversion: <br>
 
 			<select id="bw">
 			  <option value="ccir">CCIR 601</option>
@@ -53,16 +55,19 @@ layout: "normal"
 			<input type="range" id="customG" min="0" max="3" value="1" step="0.01">Green<br />
 			<input type="range" id="customB" min="0" max="3" value="1" step="0.01">Blue<br />
 
+			Character weights:<br>
+
+			<input type="range" id="weight_start" min="-1" max="1" value="0" step="0.01">Top<br />
+			<input type="range" id="weight_end" min="-1" max="1" value="0" step="0.01">Bottom<br />
+
+			Text conversion:<br>
+
 			<input type="range" id="row_length" min="10" max="200" value="98" step="1">Line Length<br />
-			<input type="range" id="line_height" min="0" max="2" value="0.6" step="0.01">Line Spacing<br />
-			<input type="range" id="subpixels" min="1" max="7" value="1" step="1">Subpixels<br />
+			<input type="range" id="line_height" min="0.06" max="2" value="0.6" step="0.01">Line Spacing<br />
 
 			<input type="checkbox" id="dither_fine" checked></input> Dither (Fine)<br />
 
 			<input type="checkbox" id="dither_wide" checked></input> Dither (Wide)<br />
-
-			<input type="checkbox" id="ultimate_mode" checked></input> Ultimate Mode<br />
-
 
 		</form>
 
