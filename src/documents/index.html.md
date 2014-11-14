@@ -57,7 +57,7 @@ layout: "normal"
 
 			Character weights:<br>
 
-			<input type="range" id="weight_start" min="-1" max="1" value="0" step="0.01">Top<br />
+			<input type="range" id="weight_start" min="0" max="1" value="0" step="0.01">Top<br />
 			<input type="range" id="weight_end" min="-1" max="1" value="0" step="0.01">Bottom<br />
 
 			Text conversion:<br>
