@@ -14,4 +14,5 @@ HTML5 / Javascript Image -> ASCII converter
 **Use monospace fonts**
 
 [Read more here](http://dotdot.svbtle.com/kword-an-image-ascii-converter)
+
 [Live demo here](http://blog.mikekuehn.ca/kword/)
